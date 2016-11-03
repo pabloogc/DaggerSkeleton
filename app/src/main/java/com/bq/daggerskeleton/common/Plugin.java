@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 
 public interface Plugin {
 
+    PluginProperties getProperties();
+
     void onCreate(@Nullable Bundle savedInstanceState);
 
     /**
@@ -25,7 +27,7 @@ public interface Plugin {
     /**
      * All the components have completed their onCreate method, it's safe to reference external views.
      */
-    void onComponentsReady();
+    void onComponentsCreated();
 
     void onSaveInstanceState(@NonNull Bundle outState);
 

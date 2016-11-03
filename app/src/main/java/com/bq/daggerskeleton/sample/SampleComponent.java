@@ -29,7 +29,7 @@ import dagger.Component;
       }
 )
 @PluginScope
-public interface MainActivityComponent {
+public interface SampleComponent {
    Map<Class<?>, Plugin> pluginMap();
 
    void inject(MainActivity activity);

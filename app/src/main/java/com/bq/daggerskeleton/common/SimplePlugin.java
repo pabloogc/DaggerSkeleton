@@ -14,27 +14,21 @@ import javax.inject.Inject;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
-
+/**
+ * Empty implementation for a Plugin
+ */
 public abstract class SimplePlugin implements Plugin {
 
-   @Inject MainActivity activity;
    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
-
-   public Context getContext() {
-      return activity;
-   }
-
-   public MainActivity getActivity() {
-      return activity;
-   }
 
    public void track(Disposable disposable) {
       compositeDisposable.add(disposable);
    }
 
-   //###############################
-   // No-op
-   //###############################
+   @Override
+   public PluginProperties getProperties() {
+      return PluginProperties.DEFAULT;
+   }
 
    @Override
    public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,7 +50,7 @@ public abstract class SimplePlugin implements Plugin {
    }
 
    @Override
-   public void onComponentsReady() {
+   public void onComponentsCreated() {
    }
 
    @Override

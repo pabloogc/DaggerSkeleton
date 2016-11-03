@@ -1,5 +1,6 @@
 package com.bq.daggerskeleton.common;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -51,6 +52,7 @@ import static android.util.Log.INFO;
 import static android.util.Log.WARN;
 import static android.util.Log.d;
 import static android.util.Log.e;
+import static java.security.AccessController.getContext;
 
 @PluginScope
 public final class LoggerPlugin extends SimplePlugin {
@@ -64,24 +66,27 @@ public final class LoggerPlugin extends SimplePlugin {
    private static final String LOG_FOLDER = "__camera_log";
 
    private final Lazy<Map<Class<?>, Plugin>> pluginMap;
+   private final Context context;
 
    private File logRootDirectory;
    private File logFile;
    private final FileLogger fileLogger = new FileLogger();
 
+   //TODO: External parameters
    private final boolean logToFile = true;
    private final boolean logToConsole = true;
    private long logFilesMaxAge = 0;
 
 
-   @Inject LoggerPlugin(Lazy<Map<Class<?>, Plugin>> pluginMap) {
+   @Inject LoggerPlugin(Lazy<Map<Class<?>, Plugin>> pluginMap, Context context) {
       this.pluginMap = pluginMap;
+      this.context = context;
    }
 
    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
       Timber.uprootAll();
 
-      logRootDirectory = new File(getContext().getExternalCacheDir(), LOG_FOLDER);
+      logRootDirectory = new File(context.getExternalCacheDir(), LOG_FOLDER);
 
       if (logToConsole) {
          Timber.plant(new Timber.DebugTree());
@@ -104,7 +109,7 @@ public final class LoggerPlugin extends SimplePlugin {
    }
 
    @Override
-   public void onComponentsReady() {
+   public void onComponentsCreated() {
       scanComponentsAndSubscribe(true);
    }
 
@@ -191,13 +196,13 @@ public final class LoggerPlugin extends SimplePlugin {
                Disposable disposable = null;
 
                if (pluginField instanceof Observable) {
-                  disposable = ((Observable) pluginField).observeOn(Schedulers.io()).subscribe(consumer);
+                  disposable = ((Observable) pluginField).observeOn(Schedulers.io()).subscribe(consumer, consumer);
                } else if (pluginField instanceof Flowable) {
-                  disposable = ((Flowable) pluginField).observeOn(Schedulers.io()).subscribe(consumer);
+                  disposable = ((Flowable) pluginField).observeOn(Schedulers.io()).subscribe(consumer, consumer);
                } else if (pluginField instanceof Single) {
-                  disposable = ((Single) pluginField).observeOn(Schedulers.io()).subscribe(consumer);
+                  disposable = ((Single) pluginField).observeOn(Schedulers.io()).subscribe(consumer, consumer);
                } else if (pluginField instanceof Maybe) {
-                  disposable = ((Maybe) pluginField).observeOn(Schedulers.io()).subscribe(consumer);
+                  disposable = ((Maybe) pluginField).observeOn(Schedulers.io()).subscribe(consumer, consumer);
                }
 
                if (disposable != null) {
@@ -216,7 +221,7 @@ public final class LoggerPlugin extends SimplePlugin {
 
    private boolean createOrOpenLogFile(@Nullable Bundle savedInstanceState) {
       //Prepare folder
-      File cacheDir = getContext().getCacheDir();
+      File cacheDir = context.getCacheDir();
       File logRootDirectory = new File(cacheDir.getAbsolutePath(), LOG_FOLDER);
       if (!logRootDirectory.exists()) {
          if (!logRootDirectory.mkdir()) {

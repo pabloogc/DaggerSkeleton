@@ -10,12 +10,14 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import com.bq.daggerskeleton.R;
-import com.bq.daggerskeleton.sample.DaggerMainActivityComponent;
-import com.bq.daggerskeleton.sample.MainActivityComponent;
+import com.bq.daggerskeleton.sample.DaggerSampleComponent;
+import com.bq.daggerskeleton.sample.SampleComponent;
 import com.bq.daggerskeleton.sample.CarlPluginImpl1;
 import com.bq.daggerskeleton.sample.CarlPluginImpl2;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -32,42 +34,38 @@ public class MainActivity extends AppCompatActivity {
 
    private static final String ARG_PLUGIN_SAVED_STATES = "pluginStates";
 
-   //######################
    // Plugins
-   //######################
    private final List<Plugin> pluginList = new ArrayList<>();
    private final List<Plugin> componentBackList = new ArrayList<>();
    private final List<Plugin> componentTouchList = new ArrayList<>();
 
-   //######################
-   // Misc
-   //######################
+   // Reused events
    private SharedEvent<MotionEvent> sharedMotionEvent = SharedEvent.create();
    private SharedEvent<KeyEvent> sharedKeyEvent = SharedEvent.create();
    private SharedEvent<Void> sharedBackEvent = SharedEvent.create();
 
 
-   private MainActivityComponent mainActivityComponent;
+   private SampleComponent sampleComponent;
    @Inject Map<Class<?>, Plugin> pluginMap;
 
    @Override
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
 
-      mainActivityComponent = DaggerMainActivityComponent.builder()
+      sampleComponent = DaggerSampleComponent.builder()
             .mainActivityModule(new MainActivityModule(this))
             .carlModuleImpl1(new CarlPluginImpl1.CarlModuleImpl1(true))
             .carlModuleImpl2(new CarlPluginImpl2.CarlModuleImpl2(false))
             .build();
-      mainActivityComponent.inject(this);
+      sampleComponent.inject(this);
 
       setContentView(R.layout.activity_container);
 
-      //#############
       //Component Initialization
-      //#############
 
-      pluginList.addAll(pluginMap.values());
+      prepareCallbackLists();
+
+      //Restore plugin states
 
       ArrayList<Bundle> componentSavedStates = null;
       if (savedInstanceState != null) {
@@ -87,9 +85,39 @@ public class MainActivity extends AppCompatActivity {
       }
    }
 
-   //###############################################
+   private void prepareCallbackLists() {
+      //Register lifecycle, back and touch
+      pluginList.addAll(pluginMap.values());
+      componentBackList.addAll(pluginMap.values());
+      for (Plugin plugin : pluginList) {
+         if (plugin.getProperties().willHandleTouch)
+            componentTouchList.add(plugin);
+      }
+
+      //Sort by priority
+      Collections.sort(pluginList, new Comparator<Plugin>() {
+         @Override
+         public int compare(Plugin o1, Plugin o2) {
+            return Integer.compare(o1.getProperties().lifecyclePriority, o2.getProperties().lifecyclePriority);
+         }
+      });
+
+      Collections.sort(componentBackList, new Comparator<Plugin>() {
+         @Override
+         public int compare(Plugin o1, Plugin o2) {
+            return Integer.compare(o1.getProperties().backPriority, o2.getProperties().backPriority);
+         }
+      });
+
+      Collections.sort(componentTouchList, new Comparator<Plugin>() {
+         @Override
+         public int compare(Plugin o1, Plugin o2) {
+            return Integer.compare(o1.getProperties().touchPriority, o2.getProperties().touchPriority);
+         }
+      });
+   }
+
    // Life-Cycle
-   //###############################################
 
    @Override
    public void onPostCreate(Bundle savedInstanceState) {
@@ -98,9 +126,9 @@ public class MainActivity extends AppCompatActivity {
       for (Plugin component : pluginList) {
          component.onPostCreate();
       }
-      Timber.tag(LC_TAG).d("onComponentsReady");
+      Timber.tag(LC_TAG).d("onComponentsCreated");
       for (Plugin component : pluginList) {
-         component.onComponentsReady();
+         component.onComponentsCreated();
       }
    }
 
@@ -185,8 +213,7 @@ public class MainActivity extends AppCompatActivity {
    }
 
    //###############################################
-   // Other
-   //###############################################
+   // Hardware keys and touch
 
    @Override
    public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -229,13 +256,7 @@ public class MainActivity extends AppCompatActivity {
    }
 
 
-   //###############################################
-   // Props
-   //###############################################
-
-   public MainActivityComponent getMainActivityComponent() {
-      return mainActivityComponent;
-   }
+   // Generic Context module
 
    @Module
    public static class MainActivityModule {
@@ -247,17 +268,17 @@ public class MainActivity extends AppCompatActivity {
       }
 
       @Provides
-      public MainActivity provideMainActivity() {
+      MainActivity provideMainActivity() {
          return mainActivity;
       }
 
       @Provides
-      public Context provideContext() {
+      Context provideContext() {
          return mainActivity;
       }
 
       @Provides
-      public Activity provideActivity() {
+      Activity provideActivity() {
          return mainActivity;
       }
    }
