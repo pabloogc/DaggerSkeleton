@@ -1,16 +1,12 @@
 package com.bq.daggerskeleton.sample;
 
-import android.content.Context;
-
 import com.bq.daggerskeleton.common.Plugin;
 import com.bq.daggerskeleton.common.LoggerPlugin;
 import com.bq.daggerskeleton.common.SimplePlugin;
-import com.bq.daggerskeleton.dagger.PluginScope;
+import com.bq.daggerskeleton.common.PluginScope;
 
 import javax.inject.Inject;
 
-import dagger.Lazy;
-import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ClassKey;
@@ -21,16 +17,6 @@ import io.reactivex.functions.Function;
 
 @PluginScope
 public class AlicePlugin extends SimplePlugin {
-
-
-   @LoggerPlugin.AutoLog
-   private final Flowable<String> sampleFlowable = Flowable.interval(1, java.util.concurrent.TimeUnit.SECONDS)
-         .map(new Function<Long, String>() {
-            @Override
-            public String apply(Long aLong) throws Exception {
-               return "Hello " + String.valueOf(aLong);
-            }
-         });
 
    @Inject AlicePlugin(BobPlugin bobPlugin) {
 

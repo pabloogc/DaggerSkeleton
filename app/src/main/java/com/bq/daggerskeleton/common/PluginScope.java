@@ -1,4 +1,4 @@
-package com.bq.daggerskeleton.dagger;
+package com.bq.daggerskeleton.common;
 
 
 import java.lang.annotation.Retention;

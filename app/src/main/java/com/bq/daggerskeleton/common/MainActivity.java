@@ -10,10 +10,9 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import com.bq.daggerskeleton.R;
-import com.bq.daggerskeleton.sample.DaggerSampleComponent;
-import com.bq.daggerskeleton.sample.SampleComponent;
-import com.bq.daggerskeleton.sample.CarlPluginImpl1;
-import com.bq.daggerskeleton.sample.CarlPluginImpl2;
+import com.bq.daggerskeleton.sample.CameraComponent;
+import com.bq.daggerskeleton.sample.CarlPlugin;
+import com.bq.daggerskeleton.sample.app.App;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,32 +44,31 @@ public class MainActivity extends AppCompatActivity {
    private SharedEvent<Void> sharedBackEvent = SharedEvent.create();
 
 
-   private SampleComponent sampleComponent;
+   private CameraComponent cameraComponent;
    @Inject Map<Class<?>, Plugin> pluginMap;
 
    @Override
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
 
-      sampleComponent = DaggerSampleComponent.builder()
-            .mainActivityModule(new MainActivityModule(this))
-            .carlModuleImpl1(new CarlPluginImpl1.CarlModuleImpl1(true))
-            .carlModuleImpl2(new CarlPluginImpl2.CarlModuleImpl2(false))
-            .build();
-      sampleComponent.inject(this);
+      final long now = System.currentTimeMillis();
+
+      cameraComponent = ((App) getApplication()).getAppComponent().cameraComponent(
+            new MainActivityModule(this),
+            new CarlPlugin.CarlPluginModule(CarlPlugin.Variant.VARIANT_1) {
+            });
+
+      cameraComponent.inject(this);
 
       setContentView(R.layout.activity_container);
 
-      //Component Initialization
-
-      prepareCallbackLists();
-
       //Restore plugin states
-
       ArrayList<Bundle> componentSavedStates = null;
       if (savedInstanceState != null) {
          componentSavedStates = savedInstanceState.getParcelableArrayList(ARG_PLUGIN_SAVED_STATES);
       }
+
+      prepareCallbackLists();
 
       Timber.tag(LC_TAG).d("onCreate");
       for (int i = 0; i < pluginList.size(); i++) {
@@ -82,6 +80,17 @@ public class MainActivity extends AppCompatActivity {
       Timber.tag(LC_TAG).d("onCreateDynamicView");
       for (Plugin component : pluginList) {
          component.onCreateDynamicView();
+      }
+
+      final long elapsed = System.currentTimeMillis() - now;
+      Timber.tag(LC_TAG).v("┌ Activity with %2d plugins loaded in %3d ms", pluginList.size(), elapsed);
+      Timber.tag(LC_TAG).v("├──────────────────────────────────────────");
+      for (Plugin plugin : pluginList) {
+         String treeCode = "├";
+         if (plugin == pluginList.get(pluginList.size() - 1)) {
+            treeCode = "└";
+         }
+         Timber.tag(LC_TAG).v("%s %s", treeCode, plugin.getClass().getSimpleName());
       }
    }
 
@@ -95,26 +104,9 @@ public class MainActivity extends AppCompatActivity {
       }
 
       //Sort by priority
-      Collections.sort(pluginList, new Comparator<Plugin>() {
-         @Override
-         public int compare(Plugin o1, Plugin o2) {
-            return Integer.compare(o1.getProperties().lifecyclePriority, o2.getProperties().lifecyclePriority);
-         }
-      });
-
-      Collections.sort(componentBackList, new Comparator<Plugin>() {
-         @Override
-         public int compare(Plugin o1, Plugin o2) {
-            return Integer.compare(o1.getProperties().backPriority, o2.getProperties().backPriority);
-         }
-      });
-
-      Collections.sort(componentTouchList, new Comparator<Plugin>() {
-         @Override
-         public int compare(Plugin o1, Plugin o2) {
-            return Integer.compare(o1.getProperties().touchPriority, o2.getProperties().touchPriority);
-         }
-      });
+      Collections.sort(pluginList, (o1, o2) -> Integer.compare(o1.getProperties().lifecyclePriority, o2.getProperties().lifecyclePriority));
+      Collections.sort(componentBackList, (o1, o2) -> Integer.compare(o1.getProperties().backPriority, o2.getProperties().backPriority));
+      Collections.sort(componentTouchList, (o1, o2) -> Integer.compare(o1.getProperties().touchPriority, o2.getProperties().touchPriority));
    }
 
    // Life-Cycle

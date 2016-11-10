@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pools;
 
-import com.bq.daggerskeleton.dagger.PluginScope;
+import com.bq.daggerskeleton.sample.flux.Store;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,9 +22,11 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +41,6 @@ import dagger.multibindings.IntoMap;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -52,10 +53,13 @@ import static android.util.Log.INFO;
 import static android.util.Log.WARN;
 import static android.util.Log.d;
 import static android.util.Log.e;
-import static java.security.AccessController.getContext;
 
 @PluginScope
 public final class LoggerPlugin extends SimplePlugin {
+
+   private static final boolean LOG_TO_FILE = true;
+   private static final boolean LOG_TO_CONSOLE = true;
+   private static final long LOG_FILES_MAX_AGE = 0; //Delete for every session
 
    private static final String STATE_LOG_FILE = "logFile";
 
@@ -66,21 +70,22 @@ public final class LoggerPlugin extends SimplePlugin {
    private static final String LOG_FOLDER = "__camera_log";
 
    private final Lazy<Map<Class<?>, Plugin>> pluginMap;
+   private Lazy<Set<Store<?>>> storeSet;
    private final Context context;
 
    private File logRootDirectory;
    private File logFile;
    private final FileLogger fileLogger = new FileLogger();
 
-   //TODO: External parameters
-   private final boolean logToFile = true;
-   private final boolean logToConsole = true;
-   private long logFilesMaxAge = 0;
-
-
-   @Inject LoggerPlugin(Lazy<Map<Class<?>, Plugin>> pluginMap, Context context) {
+   @Inject
+   LoggerPlugin(Lazy<Map<Class<?>, Plugin>> pluginMap, Lazy<Set<Store<?>>> storeSet, Context context) {
       this.pluginMap = pluginMap;
+      this.storeSet = storeSet;
       this.context = context;
+   }
+
+   @Override public PluginProperties getProperties() {
+      return PluginProperties.MAX;
    }
 
    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -88,11 +93,11 @@ public final class LoggerPlugin extends SimplePlugin {
 
       logRootDirectory = new File(context.getExternalCacheDir(), LOG_FOLDER);
 
-      if (logToConsole) {
+      if (LOG_TO_CONSOLE) {
          Timber.plant(new Timber.DebugTree());
       }
 
-      if (logToFile) {
+      if (LOG_TO_FILE) {
          boolean logFileReady = createOrOpenLogFile(savedInstanceState);
          if (logFileReady) {
             Timber.plant(new Timber.Tree() {
@@ -105,7 +110,7 @@ public final class LoggerPlugin extends SimplePlugin {
             Timber.e("Error with log file %s, only console logs are available", LOG_FOLDER);
          }
       }
-      deleteOldLogs(logFilesMaxAge);
+      deleteOldLogs(LOG_FILES_MAX_AGE);
    }
 
    @Override
@@ -149,74 +154,64 @@ public final class LoggerPlugin extends SimplePlugin {
       return logFile;
    }
 
-   @SuppressWarnings("unchecked")
    private void scanComponentsAndSubscribe(boolean async) {
-      Observable<Object> observable = Observable.just(new Object());
-      (async ? observable.observeOn(Schedulers.computation()) : observable)
-            .subscribe(new Observer<Object>() {
-               @Override public void onSubscribe(Disposable d) {
-                  track(d);
-               }
-
-               @Override public void onNext(Object value) {
-
-               }
-
-               @Override public void onError(Throwable e) {
-
-               }
-
-               @Override public void onComplete() {
-                  registerToComponents();
-               }
-            });
+      if (async) {
+         new Thread(this::registerToComponents).start();
+      } else {
+         registerToComponents();
+      }
    }
 
    @SuppressWarnings("unchecked")
    private void registerToComponents() {
       long start = System.nanoTime();
 
-      for (Plugin plugin : pluginMap.get().values()) {
-         final Class<? extends Plugin> clazz = plugin.getClass();
+      for (Object object : pluginMap.get().values()) {
+         final Class<?> clazz = object.getClass();
          for (Field field : clazz.getDeclaredFields()) {
+
             if (field.getAnnotation(AutoLog.class) == null) continue;
+            final String tag = clazz.getSimpleName();
+            final String observableName = field.getName();
 
             try {
                field.setAccessible(true);
-               Object pluginField = field.get(plugin);
-               final String enclosingClassName = clazz.getSimpleName();
-               final String fieldName = field.getName();
-
-               Consumer consumer = new Consumer() {
-                  @Override public void accept(Object value) throws Exception {
-                     Timber.d("%s # %s: %s", enclosingClassName, fieldName, value);
-                  }
-               };
-
-               Disposable disposable = null;
-
-               if (pluginField instanceof Observable) {
-                  disposable = ((Observable) pluginField).observeOn(Schedulers.io()).subscribe(consumer, consumer);
-               } else if (pluginField instanceof Flowable) {
-                  disposable = ((Flowable) pluginField).observeOn(Schedulers.io()).subscribe(consumer, consumer);
-               } else if (pluginField instanceof Single) {
-                  disposable = ((Single) pluginField).observeOn(Schedulers.io()).subscribe(consumer, consumer);
-               } else if (pluginField instanceof Maybe) {
-                  disposable = ((Maybe) pluginField).observeOn(Schedulers.io()).subscribe(consumer, consumer);
-               }
-
-               if (disposable != null) {
-                  track(disposable);
-               }
-
+               Object pluginField = field.get(object);
+               subscribeToObservableUnsafe(pluginField, tag, observableName);
             } catch (Exception e) {
                Timber.e(e);
             }
          }
       }
 
+      for (Store store : new ArrayList<>(storeSet.get())) {
+         subscribeToObservableUnsafe(store.flowable(), store.getClass().getSimpleName(), "State");
+      }
+
       long elapsed = System.nanoTime() - start;
       Timber.d("Logger scan completed in %d ms", TimeUnit.MILLISECONDS.convert(elapsed, TimeUnit.NANOSECONDS));
+   }
+
+   @SuppressWarnings("unchecked")
+   private void subscribeToObservableUnsafe(Object observable, String tag, String linePrefix) {
+
+      Consumer consumer = value -> Timber.tag(tag).d("%s <- %s", linePrefix, value);
+      Consumer errorConsumer = value -> Timber.tag(tag).e("%s <- %s", linePrefix, value);
+
+      Disposable disposable = null;
+      if (observable instanceof Observable) {
+         disposable = ((Observable) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
+      } else if (observable instanceof Flowable) {
+         disposable = ((Flowable) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
+      } else if (observable instanceof Single) {
+         disposable = ((Single) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
+      } else if (observable instanceof Maybe) {
+         disposable = ((Maybe) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
+      }
+
+      if (disposable != null) {
+         track(disposable);
+      }
    }
 
    private boolean createOrOpenLogFile(@Nullable Bundle savedInstanceState) {
@@ -411,7 +406,8 @@ public final class LoggerPlugin extends SimplePlugin {
 
    }
 
-   @Module public static abstract class LoggerModule {
+   @Module
+   public static abstract class LoggerModule {
       @Provides @PluginScope @IntoMap @ClassKey(LoggerPlugin.class)
       static Plugin provideLoggerPlugin(LoggerPlugin plugin) {
          return plugin;

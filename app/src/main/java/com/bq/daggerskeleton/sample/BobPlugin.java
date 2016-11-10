@@ -2,7 +2,7 @@ package com.bq.daggerskeleton.sample;
 
 import com.bq.daggerskeleton.common.Plugin;
 import com.bq.daggerskeleton.common.SimplePlugin;
-import com.bq.daggerskeleton.dagger.PluginScope;
+import com.bq.daggerskeleton.common.PluginScope;
 
 import javax.inject.Inject;
 

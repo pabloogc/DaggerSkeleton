@@ -9,6 +9,8 @@ import android.support.annotation.Nullable;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.bq.daggerskeleton.sample.app.App;
+
 import javax.inject.Inject;
 
 import io.reactivex.disposables.CompositeDisposable;
@@ -24,6 +26,7 @@ public abstract class SimplePlugin implements Plugin {
    public void track(Disposable disposable) {
       compositeDisposable.add(disposable);
    }
+
 
    @Override
    public PluginProperties getProperties() {
