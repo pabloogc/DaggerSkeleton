@@ -17,7 +17,7 @@ import dagger.multibindings.ElementsIntoSet;
 @PluginScope
 public class CarlPluginImpl2 extends SimplePlugin implements CarlPlugin {
 
-   @Inject CarlPluginImpl2(BobPlugin alicePlugin) {
+   @Inject CarlPluginImpl2() {
    }
 
    @Module public static class CarlModuleImpl2 {

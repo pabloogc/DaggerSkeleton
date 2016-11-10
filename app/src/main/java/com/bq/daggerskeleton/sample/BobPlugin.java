@@ -14,13 +14,11 @@ import dagger.multibindings.IntoMap;
 @PluginScope
 public class BobPlugin extends SimplePlugin {
 
-   private final AlicePlugin alicePlugin;
-
-   @Inject BobPlugin(AlicePlugin alicePlugin) {
-      this.alicePlugin = alicePlugin;
+   @Inject BobPlugin() {
    }
 
-   @Module public static abstract class BobModule {
+   @Module
+   public static abstract class BobModule {
       @Provides @PluginScope @IntoMap @ClassKey(BobPlugin.class)
       static Plugin provideBob(BobPlugin BobPlugin) {
          return BobPlugin;

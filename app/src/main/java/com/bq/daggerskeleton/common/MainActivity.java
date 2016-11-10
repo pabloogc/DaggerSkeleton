@@ -79,9 +79,9 @@ public class MainActivity extends AppCompatActivity {
          pluginList.get(i).onCreate(state);
       }
 
-      Timber.tag(LC_TAG).d("onCreateView");
+      Timber.tag(LC_TAG).d("onCreateDynamicView");
       for (Plugin component : pluginList) {
-         component.onCreateView();
+         component.onCreateDynamicView();
       }
    }
 
@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
    protected void onSaveInstanceState(@NonNull Bundle outState) {
       super.onSaveInstanceState(outState);
       Timber.tag(LC_TAG).d("onSaveInstanceState");
-      ArrayList<Bundle> states = new ArrayList<>();
+      ArrayList<Bundle> states = new ArrayList<>(pluginList.size());
       for (Plugin component : pluginList) {
          Bundle componentBundle = new Bundle();
          component.onSaveInstanceState(componentBundle);
@@ -196,9 +196,9 @@ public class MainActivity extends AppCompatActivity {
 
       Timber.tag(LC_TAG).d("onConfigurationChanged [%s]", newConfig);
 
-      Timber.tag(LC_TAG).d("onDestroyView");
+      Timber.tag(LC_TAG).d("onDestroyDynamicView");
       for (Plugin component : pluginList) {
-         component.onDestroyView();
+         component.onDestroyDynamicView();
       }
 
       Timber.tag(LC_TAG).d("onConfigurationChanged");
@@ -206,9 +206,9 @@ public class MainActivity extends AppCompatActivity {
          component.onConfigurationChanged(newConfig);
       }
 
-      Timber.tag(LC_TAG).d("onCreateView");
+      Timber.tag(LC_TAG).d("onCreateDynamicView");
       for (Plugin component : pluginList) {
-         component.onCreateView();
+         component.onCreateDynamicView();
       }
    }
 

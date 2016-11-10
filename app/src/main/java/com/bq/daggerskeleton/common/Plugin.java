@@ -20,7 +20,7 @@ public interface Plugin {
      * Most components can ignore this method if they ignore configuration changes and
      * do every logic during {@link #onCreate(Bundle)}
      */
-    void onCreateView();
+    void onCreateDynamicView();
 
     void onPostCreate();
 
@@ -53,7 +53,7 @@ public interface Plugin {
 
     /**
      * Called during {@link #onConfigurationChanged(Configuration)}, this call is always
-     * followed by a {@link #onCreateView()}
+     * followed by a {@link #onCreateDynamicView()}
      */
-    void onDestroyView();
+    void onDestroyDynamicView();
 }

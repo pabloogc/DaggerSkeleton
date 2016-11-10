@@ -35,12 +35,12 @@ public abstract class SimplePlugin implements Plugin {
    }
 
    @Override
-   public void onCreateView() {
+   public void onCreateDynamicView() {
 
    }
 
    @Override
-   public void onDestroyView() {
+   public void onDestroyDynamicView() {
 
    }
 
