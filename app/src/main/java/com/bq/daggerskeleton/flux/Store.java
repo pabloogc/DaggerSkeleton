@@ -1,4 +1,4 @@
-package com.bq.daggerskeleton.sample.flux;
+package com.bq.daggerskeleton.flux;
 
 import android.support.annotation.NonNull;
 

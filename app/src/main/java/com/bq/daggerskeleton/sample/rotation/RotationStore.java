@@ -4,14 +4,13 @@ import android.view.OrientationEventListener;
 
 import com.bq.daggerskeleton.sample.app.App;
 import com.bq.daggerskeleton.sample.app.AppScope;
-import com.bq.daggerskeleton.sample.flux.Action;
-import com.bq.daggerskeleton.sample.flux.Dispatcher;
-import com.bq.daggerskeleton.sample.flux.Store;
+import com.bq.daggerskeleton.flux.Action;
+import com.bq.daggerskeleton.flux.Dispatcher;
+import com.bq.daggerskeleton.flux.Store;
 
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
-import timber.log.Timber;
 
 
 public class RotationStore extends Store<RotationState> {

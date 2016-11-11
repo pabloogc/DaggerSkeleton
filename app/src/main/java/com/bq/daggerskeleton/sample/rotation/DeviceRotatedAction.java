@@ -1,7 +1,7 @@
 package com.bq.daggerskeleton.sample.rotation;
 
 
-import com.bq.daggerskeleton.sample.flux.Action;
+import com.bq.daggerskeleton.flux.Action;
 
 public final class DeviceRotatedAction implements Action{
    public final int deviceAccumulatedRotation;

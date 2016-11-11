@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pools;
 
-import com.bq.daggerskeleton.sample.flux.Store;
+import com.bq.daggerskeleton.flux.Store;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -38,6 +38,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -57,7 +58,7 @@ import static android.util.Log.e;
 @PluginScope
 public final class LoggerPlugin extends SimplePlugin {
 
-   private static final boolean LOG_TO_FILE = true;
+   private static final boolean LOG_TO_FILE = true; //TODO: Build Config parameters
    private static final boolean LOG_TO_CONSOLE = true;
    private static final long LOG_FILES_MAX_AGE = 0; //Delete for every session
 
@@ -110,29 +111,42 @@ public final class LoggerPlugin extends SimplePlugin {
             Timber.e("Error with log file %s, only console logs are available", LOG_FOLDER);
          }
       }
-      deleteOldLogs(LOG_FILES_MAX_AGE);
+
+      deleteOldLogs(LOG_FILES_MAX_AGE)
+            .subscribeOn(Schedulers.io())
+            .subscribe();
    }
 
    @Override
    public void onComponentsCreated() {
-      scanComponentsAndSubscribe(true);
+      scanComponentsAndSubscribe()
+            .subscribeOn(Schedulers.io())
+            .subscribe();
    }
 
-   public void deleteOldLogs(long maxAge) {
-      if (logRootDirectory == null || !logRootDirectory.exists()) return;
-      int deleted = 0;
-      final File[] files = logRootDirectory.listFiles();
-      if (files != null) {
-         for (File file : files) {
-            long lastModified = System.currentTimeMillis() - file.lastModified();
-            if (lastModified > maxAge) {
-               boolean isCurrentLogFile = logFile != null &&
-                     file.getAbsolutePath().equals(logFile.getAbsolutePath());
-               if (!isCurrentLogFile && file.delete()) deleted++;
+   /**
+    * Delete any log files created under {@link #LOG_FOLDER} older that <code>maxAge</code> in ms.
+    * <p>
+    * Current log file wont be deleted.
+    */
+   public Completable deleteOldLogs(long maxAge) {
+      return Completable.create(e -> {
+         if (logRootDirectory == null || !logRootDirectory.exists()) return;
+         int deleted = 0;
+         final File[] files = logRootDirectory.listFiles();
+         if (files != null) {
+            for (File file : files) {
+               long lastModified = System.currentTimeMillis() - file.lastModified();
+               if (lastModified > maxAge) {
+                  boolean isCurrentLogFile = logFile != null &&
+                        file.getAbsolutePath().equals(logFile.getAbsolutePath());
+                  if (!isCurrentLogFile && file.delete()) deleted++;
+               }
             }
          }
-      }
-      Timber.v("Deleted %d old log files", deleted);
+         Timber.v("Deleted %d old log files", deleted);
+         e.onComplete();
+      });
    }
 
    /**
@@ -154,12 +168,8 @@ public final class LoggerPlugin extends SimplePlugin {
       return logFile;
    }
 
-   private void scanComponentsAndSubscribe(boolean async) {
-      if (async) {
-         new Thread(this::registerToComponents).start();
-      } else {
-         registerToComponents();
-      }
+   private Completable scanComponentsAndSubscribe() {
+      return Completable.create(e -> registerToComponents());
    }
 
    @SuppressWarnings("unchecked")

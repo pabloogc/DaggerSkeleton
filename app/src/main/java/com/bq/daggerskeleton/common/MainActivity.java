@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.bq.daggerskeleton.BuildConfig;
 import com.bq.daggerskeleton.R;
 import com.bq.daggerskeleton.sample.CameraComponent;
 import com.bq.daggerskeleton.sample.CarlPlugin;
@@ -70,27 +71,34 @@ public class MainActivity extends AppCompatActivity {
 
       prepareCallbackLists();
 
+      int pluginCount = pluginList.size();
+      long[] loadTimes = new long[pluginCount];
+
       Timber.tag(LC_TAG).d("onCreate");
-      for (int i = 0; i < pluginList.size(); i++) {
+      for (int i = 0; i < pluginCount; i++) {
          Bundle state = null;
          if (componentSavedStates != null) state = componentSavedStates.get(i);
+         loadTimes[i] = System.nanoTime();
          pluginList.get(i).onCreate(state);
+         loadTimes[i] = System.nanoTime() - loadTimes[i]; //Elapsed
       }
 
       Timber.tag(LC_TAG).d("onCreateDynamicView");
-      for (Plugin component : pluginList) {
-         component.onCreateDynamicView();
+      for (int i = 0; i < pluginCount; i++) {
+         pluginList.get(i).onCreateDynamicView();
       }
 
       final long elapsed = System.currentTimeMillis() - now;
-      Timber.tag(LC_TAG).v("┌ Activity with %2d plugins loaded in %3d ms", pluginList.size(), elapsed);
+      Timber.tag(LC_TAG).v("┌ Activity with %2d plugins loaded in %3d ms", pluginCount, elapsed);
       Timber.tag(LC_TAG).v("├──────────────────────────────────────────");
-      for (Plugin plugin : pluginList) {
-         String treeCode = "├";
-         if (plugin == pluginList.get(pluginList.size() - 1)) {
-            treeCode = "└";
+      for (int i = 0; i < pluginCount; i++) {
+         Plugin plugin = pluginList.get(i);
+         String boxChar = "├";
+         if (plugin == pluginList.get(pluginCount - 1)) {
+            boxChar = "└";
          }
-         Timber.tag(LC_TAG).v("%s %s", treeCode, plugin.getClass().getSimpleName());
+         Timber.tag(LC_TAG).v("%s %s - %d ms", boxChar, plugin.getClass().getSimpleName(), (loadTimes[i] / 10_000_000));
+
       }
    }
 
