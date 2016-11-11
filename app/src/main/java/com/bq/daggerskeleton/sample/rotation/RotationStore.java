@@ -1,6 +1,8 @@
 package com.bq.daggerskeleton.sample.rotation;
 
 import android.view.OrientationEventListener;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 
 import com.bq.daggerskeleton.sample.app.App;
 import com.bq.daggerskeleton.sample.app.AppScope;
@@ -8,11 +10,14 @@ import com.bq.daggerskeleton.flux.Action;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.Store;
 
+import javax.inject.Inject;
+
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
 
 
+@AppScope
 public class RotationStore extends Store<RotationState> {
 
    private final OrientationEventListener orientationEventListener;
@@ -21,7 +26,7 @@ public class RotationStore extends Store<RotationState> {
       return new RotationState();
    }
 
-   private RotationStore(App app) {
+   @Inject RotationStore(App app) {
       Dispatcher.subscribe(DeviceRotatedAction.class, a -> {
          RotationState newState = new RotationState(state());
          newState.deviceAccumulatedRotation = a.deviceAccumulatedRotation;
@@ -79,10 +84,6 @@ public class RotationStore extends Store<RotationState> {
 
    @Module
    public static class RotationModule {
-      @Provides @AppScope
-      static RotationStore provideRotationStore(App app) {
-         return new RotationStore(app);
-      }
 
       @Provides @AppScope @IntoSet
       static Store<?> provideRotationStoreToSet(RotationStore store) {

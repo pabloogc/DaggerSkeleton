@@ -61,8 +61,6 @@ public class MainActivity extends AppCompatActivity {
 
       cameraComponent.inject(this);
 
-      setContentView(R.layout.activity_container);
-
       //Restore plugin states
       ArrayList<Bundle> componentSavedStates = null;
       if (savedInstanceState != null) {
@@ -98,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
             boxChar = "└";
          }
          Timber.tag(LC_TAG).v("%s %s - %d ms", boxChar, plugin.getClass().getSimpleName(), (loadTimes[i] / 10_000_000));
-
       }
    }
 

@@ -1,9 +1,11 @@
 package com.bq.daggerskeleton.sample.app;
 
+import com.bq.daggerskeleton.common.LoggerStore;
 import com.bq.daggerskeleton.common.MainActivity;
 import com.bq.daggerskeleton.sample.CameraComponent;
 import com.bq.daggerskeleton.sample.CarlPlugin;
 import com.bq.daggerskeleton.flux.Store;
+import com.bq.daggerskeleton.sample.hardware.CameraStore;
 import com.bq.daggerskeleton.sample.rotation.RotationStore;
 
 import java.util.Set;
@@ -14,6 +16,8 @@ import dagger.Component;
       modules = {
             App.AppModule.class,
             RotationStore.RotationModule.class,
+            LoggerStore.LoggerModule.class,
+            CameraStore.CameraModule.class,
       }
 )
 @AppScope

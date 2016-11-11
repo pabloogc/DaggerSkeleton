@@ -1,6 +1,7 @@
 package com.bq.daggerskeleton.flux;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.bq.daggerskeleton.common.LoggerPlugin;
 
@@ -9,23 +10,26 @@ import io.reactivex.processors.PublishProcessor;
 
 public abstract class Store<S> {
 
-   private S state = initialState();
+   @Nullable
+   private S state;
 
    @LoggerPlugin.AutoLog
    private final PublishProcessor<S> processor = PublishProcessor.create();
 
    protected abstract S initialState();
 
-   public Flowable<S> flowable() {
+   public final Flowable<S> flowable() {
       return processor;
    }
 
-   public S state() {
+   @NonNull
+   public final S state() {
+      if (state == null) state = initialState();
       return state;
    }
 
-   protected void setState(@NonNull S newState) {
-      if (newState.equals(state)) return;
+   protected final void setState(@NonNull S newState) {
+      if (newState.equals(state())) return;
       state = newState;
       processor.onNext(state);
    }

@@ -4,8 +4,10 @@ public final class PluginProperties {
 
    public static final int DEFAULT_PRIORITY = 50;
 
-   public static final PluginProperties DEFAULT = new PluginProperties(false, DEFAULT_PRIORITY, DEFAULT_PRIORITY, DEFAULT_PRIORITY);
    public static final PluginProperties MAX = new PluginProperties(false, 0, 0, 0);
+   public static final PluginProperties HIGH = new PluginProperties(false, 25, 25, 25);
+   public static final PluginProperties DEFAULT = new PluginProperties(false, DEFAULT_PRIORITY, DEFAULT_PRIORITY, DEFAULT_PRIORITY);
+   public static final PluginProperties LOW = new PluginProperties(false, 75, 75, 75);
    public static final PluginProperties MIN = new PluginProperties(false, 100, 100, 100);
 
    public final boolean willHandleTouch;
