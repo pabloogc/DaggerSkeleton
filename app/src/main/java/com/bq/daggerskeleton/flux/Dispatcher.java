@@ -28,7 +28,7 @@ public class Dispatcher {
 
    public static void dispatch(Action action) {
       ensureUiThread();
-      Timber.v("Action -> %s", action);
+      Timber.i("Action -> %s", action);
       TreeSet<Subscription<? extends Action>> set = dispatchMap.get(action.getClass());
       if (set != null) {
          for (Subscription<? extends Action> subscription : set) {

@@ -1,7 +1,8 @@
 package com.bq.daggerskeleton.sample;
 
 
-import com.bq.daggerskeleton.common.LoggerStore;
+import com.bq.daggerskeleton.common.log.LoggerPlugin;
+import com.bq.daggerskeleton.common.log.LoggerStore;
 import com.bq.daggerskeleton.common.MainActivity;
 import com.bq.daggerskeleton.common.Plugin;
 import com.bq.daggerskeleton.common.PluginScope;
@@ -16,6 +17,7 @@ import dagger.Subcomponent;
 @Subcomponent(
       modules = {
             MainActivity.MainActivityModule.class,
+            LoggerPlugin.LoggerPluginModule.class,
 
             RootViewControllerPlugin.RootViewControllerModule.class,
             RequestPermissionPlugin.RequestPermissionModule.class,

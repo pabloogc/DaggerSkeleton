@@ -1,6 +1,6 @@
 package com.bq.daggerskeleton.sample.app;
 
-import com.bq.daggerskeleton.common.LoggerStore;
+import com.bq.daggerskeleton.common.log.LoggerStore;
 import com.bq.daggerskeleton.common.MainActivity;
 import com.bq.daggerskeleton.sample.CameraComponent;
 import com.bq.daggerskeleton.sample.CarlPlugin;

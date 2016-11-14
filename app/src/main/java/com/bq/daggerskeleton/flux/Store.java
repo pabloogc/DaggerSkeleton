@@ -3,7 +3,7 @@ package com.bq.daggerskeleton.flux;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.bq.daggerskeleton.common.LoggerPlugin;
+import com.bq.daggerskeleton.common.log.LoggerPlugin;
 
 import io.reactivex.Flowable;
 import io.reactivex.processors.PublishProcessor;

@@ -1,6 +1,11 @@
-package com.bq.daggerskeleton.common;
+package com.bq.daggerskeleton.common.log;
 
 import android.content.Context;
+
+import com.bq.daggerskeleton.common.Plugin;
+import com.bq.daggerskeleton.common.PluginProperties;
+import com.bq.daggerskeleton.common.PluginScope;
+import com.bq.daggerskeleton.common.SimplePlugin;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,6 +18,10 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import dagger.Lazy;
+import dagger.Module;
+import dagger.Provides;
+import dagger.multibindings.ClassKey;
+import dagger.multibindings.IntoMap;
 import io.reactivex.Completable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -25,11 +34,13 @@ import static android.util.Log.e;
 public final class LoggerPlugin extends SimplePlugin {
 
 
+   private final LoggerStore loggerStore;
    private final Lazy<Map<Class<?>, Plugin>> pluginMap;
    private final Context context;
 
    @Inject
-   LoggerPlugin(Context context, Lazy<Map<Class<?>, Plugin>> pluginMap) {
+   LoggerPlugin(Context context, LoggerStore loggerStore, Lazy<Map<Class<?>, Plugin>> pluginMap) {
+      this.loggerStore = loggerStore;
       this.pluginMap = pluginMap;
       this.context = context;
    }
@@ -43,6 +54,13 @@ public final class LoggerPlugin extends SimplePlugin {
       scanPlugins()
             .subscribeOn(Schedulers.io())
             .subscribe();
+   }
+
+   @Override public void onPause() {
+      FileLogger logger = loggerStore.state().fileLogger;
+      if (logger != null) {
+         logger.flush();
+      }
    }
 
    private Completable scanPlugins() {
@@ -85,4 +103,11 @@ public final class LoggerPlugin extends SimplePlugin {
 
    }
 
+   @Module
+   public static abstract class LoggerPluginModule {
+      @Provides @PluginScope @IntoMap @ClassKey(LoggerPlugin.class)
+      static Plugin provideLoggerPlugin(LoggerPlugin plugin) {
+         return plugin;
+      }
+   }
 }
