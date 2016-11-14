@@ -190,6 +190,12 @@ public final class FileLogger {
       }
    }
 
+   @Override public String toString() {
+      return "FileLogger{" +
+            "file=" + file.getAbsolutePath() +
+            '}';
+   }
+
    @Override protected void finalize() throws Throwable {
       super.finalize();
       flush();

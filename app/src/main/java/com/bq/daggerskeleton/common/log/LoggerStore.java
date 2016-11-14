@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -36,7 +37,7 @@ import static android.util.Log.e;
 public class LoggerStore extends Store<LoggerState> {
 
    private static final String LOG_FOLDER = "__camera_log";
-   private static final long LOG_FILES_MAX_AGE = 0; //Delete for every session
+   private static final long LOG_FILES_MAX_AGE = TimeUnit.DAYS.toMillis(3);
    private static final DateFormat FILE_NAME_DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.US);
 
    private final App app;
@@ -50,7 +51,7 @@ public class LoggerStore extends Store<LoggerState> {
       Timber.plant(new FileLoggerTree());
 
       createLogFile()
-            //.concatWith(deleteOldLogs(LOG_FILES_MAX_AGE))
+            .concatWith(deleteOldLogs(LOG_FILES_MAX_AGE))
             .subscribeOn(Schedulers.io())
             .subscribe();
 
