@@ -2,8 +2,6 @@ package com.bq.daggerskeleton.flux;
 
 
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 import android.support.compat.BuildConfig;
 
 import org.jetbrains.annotations.TestOnly;
@@ -72,6 +70,7 @@ public class Dispatcher {
    }
 
    private static void ensureUiThread() {
+      if (!BuildConfig.DEBUG) return;
       if (Looper.myLooper() != Looper.getMainLooper()) {
          throw new IllegalStateException("Dispatcher is not thread safe " +
                "and can only be accessed from Ui thread.");

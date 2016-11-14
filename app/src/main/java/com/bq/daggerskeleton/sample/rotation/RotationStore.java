@@ -27,6 +27,7 @@ public class RotationStore extends Store<RotationState> {
    }
 
    @Inject RotationStore(App app) {
+
       Dispatcher.subscribe(DeviceRotatedAction.class, a -> {
          RotationState newState = new RotationState(state());
          newState.deviceAccumulatedRotation = a.deviceAccumulatedRotation;
@@ -76,10 +77,6 @@ public class RotationStore extends Store<RotationState> {
       };
 
       orientationEventListener.enable();
-   }
-
-   void handleAction(Action action) {
-
    }
 
    @Module

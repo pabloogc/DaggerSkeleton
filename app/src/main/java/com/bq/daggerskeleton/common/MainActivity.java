@@ -217,7 +217,6 @@ public class MainActivity extends AppCompatActivity {
       Timber.tag(TAG).d("onKeyUp [%s]", event);
       sharedKeyEvent.reset(event);
       for (Plugin plugin : pluginList) {
-         sharedKeyEvent.setConsumerCandidate(plugin.getClass());
          plugin.onKeyUp(sharedKeyEvent);
       }
       return sharedKeyEvent.consumed() || super.onKeyUp(keyCode, event);

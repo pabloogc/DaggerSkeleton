@@ -5,12 +5,14 @@
                 android:layout_height="match_parent"
                 android:layout_width="match_parent">
 
+
     <FrameLayout
         android:id="@+id/preview_container"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         tools:background="#33ff00ff">
     </FrameLayout>
+
 
     <RelativeLayout
         android:id="@+id/shutter_container"

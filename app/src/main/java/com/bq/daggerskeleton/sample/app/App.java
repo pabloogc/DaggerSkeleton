@@ -1,6 +1,8 @@
 package com.bq.daggerskeleton.sample.app;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.HandlerThread;
 
 import com.bq.daggerskeleton.BuildConfig;
 import com.bq.daggerskeleton.flux.Dispatcher;
@@ -19,7 +21,7 @@ public class App extends Application {
 
    @Override public void onCreate() {
       super.onCreate();
-      
+
       if (BuildConfig.DEBUG) {
          Timber.plant(new Timber.DebugTree());
       }
@@ -60,6 +62,12 @@ public class App extends Application {
 
       @Provides Application provideApplication() {
          return app;
+      }
+
+      @Provides @AppScope Handler provideBackgroundHandler() {
+         HandlerThread bgThread = new HandlerThread("bg");
+         bgThread.start();
+         return new Handler(bgThread.getLooper());
       }
    }
 }

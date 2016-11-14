@@ -8,52 +8,51 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 
-
 public interface Plugin {
 
-    PluginProperties getProperties();
+   PluginProperties getProperties();
 
-    void onCreate(@Nullable Bundle savedInstanceState);
+   void onCreate(@Nullable Bundle savedInstanceState);
 
-    /**
-     * Called after {@link #onCreate(Bundle)} or during a configuration change.
-     * Most components can ignore this method if they ignore configuration changes and
-     * do every logic during {@link #onCreate(Bundle)}
-     */
-    void onCreateDynamicView();
+   /**
+    * Called after {@link #onCreate(Bundle)} or during a configuration change.
+    * Most components can ignore this method if they ignore configuration changes and
+    * do every logic during {@link #onCreate(Bundle)}
+    */
+   void onCreateDynamicView();
 
-    void onPostCreate();
+   void onPostCreate();
 
-    /**
-     * All the components have completed their onCreate method, it's safe to reference external views.
-     */
-    void onComponentsCreated();
+   /**
+    * All the components have completed their onCreate method, it's safe to reference external views.
+    */
+   void onComponentsCreated();
 
-    void onSaveInstanceState(@NonNull Bundle outState);
+   void onSaveInstanceState(@NonNull Bundle outState);
 
-    void onDestroy();
+   void onDestroy();
 
-    void onStart();
+   void onStart();
 
-    void onResume();
+   void onResume();
 
-    void onPause();
+   void onPause();
 
-    void onStop();
+   void onStop();
 
-    void onBackPressed(SharedEvent<Void> ev);
+   void onBackPressed(SharedEvent<Void> ev);
 
-    void onDispatchTouchEvent(SharedEvent<MotionEvent> ev);
+   void onDispatchTouchEvent(SharedEvent<MotionEvent> ev);
 
-    void onKeyDown(SharedEvent<KeyEvent> ev);
+   void onKeyDown(SharedEvent<KeyEvent> ev);
 
-    void onKeyUp(SharedEvent<KeyEvent> ev);
+   void onKeyUp(SharedEvent<KeyEvent> ev);
 
-    void onConfigurationChanged(@NonNull Configuration newConfig);
+   void onConfigurationChanged(@NonNull Configuration newConfig);
 
-    /**
-     * Called during {@link #onConfigurationChanged(Configuration)}, this call is always
-     * followed by a {@link #onCreateDynamicView()}
-     */
-    void onDestroyDynamicView();
+   /**
+    * Called during {@link #onConfigurationChanged(Configuration)}, this call is always
+    * followed by a {@link #onCreateDynamicView()}
+    */
+   void onDestroyDynamicView();
 }

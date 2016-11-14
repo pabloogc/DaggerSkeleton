@@ -67,6 +67,10 @@ public class RootViewControllerPlugin extends SimplePlugin {
       }
    }
 
+   public ViewGroup getPreviewContainer() {
+      return previewContainer;
+   }
+
    @Module
    public static abstract class RootViewControllerModule {
       @PluginScope @Provides @IntoMap @ClassKey(RootViewControllerPlugin.class)
