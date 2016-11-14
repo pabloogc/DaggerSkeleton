@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class CameraState {
 
+   public boolean canOpenCamera = false;
    public CameraDevice cameraDevice;
    public Surface previewSurface;
    public CameraCaptureSession session;
@@ -22,6 +23,7 @@ public class CameraState {
    }
 
    public CameraState(CameraState other) {
+      this.canOpenCamera = other.canOpenCamera;
       this.cameraDevice = other.cameraDevice;
       this.previewSurface = other.previewSurface;
       this.session = other.session;
@@ -31,11 +33,11 @@ public class CameraState {
 
    @Override public String toString() {
       return "CameraState{" +
-            "cameraDevice=" + cameraDevice +
+            "canOpenCamera=" + canOpenCamera +
+            ", cameraDevice=" + cameraDevice.getId() +
             ", previewSurface=" + previewSurface +
             ", session=" + session +
             ", selectedCamera='" + selectedCamera + '\'' +
-            ", availableCameras=" + availableCameras +
             '}';
    }
 }

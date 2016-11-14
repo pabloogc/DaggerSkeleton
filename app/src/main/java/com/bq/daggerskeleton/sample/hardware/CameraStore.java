@@ -7,7 +7,6 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
-import android.media.ImageReader;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.view.Surface;
@@ -17,7 +16,6 @@ import com.bq.daggerskeleton.flux.Store;
 import com.bq.daggerskeleton.sample.app.App;
 import com.bq.daggerskeleton.sample.app.AppScope;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -46,28 +44,18 @@ public class CameraStore extends Store<CameraState> {
       this.backgroundHandler = backgroundHandler;
 
       Dispatcher.subscribe(CameraPermissionChanged.class, permissionChanged -> {
-         CameraState newState = new CameraState();
-         if (permissionChanged.granted) {
-            populateCameraMap(newState.availableCameras);
-            newState.selectedCamera = selectDefaultCamera(newState.availableCameras);
-
-            //noinspection MissingPermission
-            cameraManager.openCamera(newState.selectedCamera, new CameraDevice.StateCallback() {
-               @Override public void onOpened(@NonNull CameraDevice camera) {
-                  Dispatcher.dispatch(new CameraOpenedAction(camera));
-               }
-
-               @Override public void onDisconnected(@NonNull CameraDevice camera) {
-
-               }
-
-               @Override public void onError(@NonNull CameraDevice camera, int error) {
-
-               }
-            }, backgroundHandler);
-         }
+         CameraState newState = new CameraState(state());
+         newState.canOpenCamera = permissionChanged.granted;
          setState(newState);
       });
+
+      Dispatcher.subscribe(OpenCameraAction.class, a -> {
+         if (state().cameraDevice == null) setState(openCamera());
+      });
+
+      //Clean-Up
+      Dispatcher.subscribe(SurfaceDestroyedAction.class, a -> setState(releaseCameraResources()));
+      Dispatcher.subscribe(CloseCameraAction.class, a -> setState(releaseCameraResources()));
 
       Dispatcher.subscribe(PreviewSurfaceChangedAction.class, a -> {
          if (state().previewSurface != null) state().previewSurface.release();
@@ -96,12 +84,32 @@ public class CameraStore extends Store<CameraState> {
       });
    }
 
-   @Module
-   public static class CameraModule {
-      @Provides @AppScope @IntoSet
-      static Store<?> provideCameraStoreToSet(CameraStore store) {
-         return store;
+   private CameraState openCamera() {
+      CameraState newState = new CameraState(state());
+      if (state().canOpenCamera) {
+         populateCameraMap(newState.availableCameras);
+         newState.selectedCamera = selectDefaultCamera(newState.availableCameras);
+
+         try {
+            //noinspection MissingPermission
+            cameraManager.openCamera(newState.selectedCamera, new CameraDevice.StateCallback() {
+               @Override public void onOpened(@NonNull CameraDevice camera) {
+                  Dispatcher.dispatch(new CameraOpenedAction(camera));
+               }
+
+               @Override public void onDisconnected(@NonNull CameraDevice camera) {
+                  Timber.d("Camera disconnected %s", camera.getId());
+               }
+
+               @Override public void onError(@NonNull CameraDevice camera, int error) {
+               }
+            }, backgroundHandler);
+         } catch (CameraAccessException e) {
+            Timber.e(e);
+         }
       }
+
+      return newState;
    }
 
    /**
@@ -139,7 +147,31 @@ public class CameraStore extends Store<CameraState> {
       } catch (CameraAccessException e) {
          Timber.e(e);
       }
+   }
 
+   private CameraState releaseCameraResources() {
+      CameraState newState = new CameraState(state());
+
+      if (newState.session != null) {
+         try {
+            newState.session.stopRepeating();
+         } catch (CameraAccessException e) {
+            Timber.e(e);
+         }
+         newState.session.close();
+         newState.session = null;
+      }
+
+      if (newState.previewSurface != null) {
+         newState.previewSurface = null;
+      }
+
+      if (newState.cameraDevice != null) {
+         newState.cameraDevice.close();
+         newState.cameraDevice = null;
+      }
+
+      return newState;
    }
 
    private void populateCameraMap(Map<String, CameraCharacteristics> cameraMap) {
@@ -161,5 +193,13 @@ public class CameraStore extends Store<CameraState> {
          }
       }
       return cameras.keySet().iterator().next();
+   }
+
+   @Module
+   public static class CameraModule {
+      @Provides @AppScope @IntoSet
+      static Store<?> provideCameraStoreToSet(CameraStore store) {
+         return store;
+      }
    }
 }

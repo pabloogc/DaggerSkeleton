@@ -13,7 +13,7 @@ public class CameraOpenedAction implements Action {
 
    @Override public String toString() {
       return "CameraOpenedAction{" +
-            "camera=" + camera +
+            "camera=" + camera.getId() +
             '}';
    }
 }

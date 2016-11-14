@@ -13,6 +13,8 @@ import com.bq.daggerskeleton.common.SimplePlugin;
 import com.bq.daggerskeleton.common.PluginScope;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.sample.core.RootViewControllerPlugin;
+import com.bq.daggerskeleton.sample.hardware.CloseCameraAction;
+import com.bq.daggerskeleton.sample.hardware.OpenCameraAction;
 import com.bq.daggerskeleton.sample.hardware.PreviewSurfaceChangedAction;
 import com.bq.daggerskeleton.sample.hardware.SurfaceDestroyedAction;
 
@@ -29,7 +31,6 @@ import dagger.multibindings.IntoMap;
 @PluginScope
 public class PreviewPlugin extends SimplePlugin {
 
-   /*package*/ SurfaceTexture surface;
    private final Context context;
    private final RootViewControllerPlugin rootViewControllerPlugin;
    @BindView(R.id.preview_texture) TextureView textureView;
@@ -47,7 +48,6 @@ public class PreviewPlugin extends SimplePlugin {
 
          @Override
          public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            PreviewPlugin.this.surface = surface;
             Dispatcher.dispatch(new PreviewSurfaceChangedAction(surface, width, height));
          }
 
@@ -58,13 +58,20 @@ public class PreviewPlugin extends SimplePlugin {
 
          @Override public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
             Dispatcher.dispatch(new SurfaceDestroyedAction());
-            return false;
+            return true;
          }
 
          @Override public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
          }
       });
+   }
+
+   @Override public void onResume() {
+      Dispatcher.dispatch(new OpenCameraAction());
+   }
+
+   @Override public void onPause() {
+      Dispatcher.dispatch(new CloseCameraAction());
    }
 
    @Module
