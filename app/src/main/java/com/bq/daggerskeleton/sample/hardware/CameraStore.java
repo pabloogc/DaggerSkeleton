@@ -54,7 +54,7 @@ public class CameraStore extends Store<CameraState> {
       });
 
       //Clean-Up
-      Dispatcher.subscribe(CloseCameraAction.class, a -> setState(releaseCameraResources()));
+      Dispatcher.subscribe(CloseCameraAction.class, a -> setState(releaseCameraResources(state())));
 
       Dispatcher.subscribe(PreviewSurfaceDestroyedAction.class, a -> {
          CameraState newState = new CameraState(state());
@@ -64,11 +64,15 @@ public class CameraStore extends Store<CameraState> {
          setState(newState);
       });
 
-      Dispatcher.subscribe(PreviewSurfaceChangedAction.class, a -> {
-         if (state().previewSurface != null) state().previewSurface.release();
-
+      Dispatcher.subscribe(PreviewSurfaceReadyAction.class, a -> {
          CameraState newState = new CameraState(state());
-         a.surfaceTexture.setDefaultBufferSize(a.width, a.height);
+
+         //Can't modify the session, so we close and open again
+         if (newState.session != null) {
+            newState = releaseSession(newState);
+         }
+
+         //Update buffer and surface target
          newState.previewSurface = new Surface(a.surfaceTexture);
          setState(newState);
 
@@ -131,7 +135,7 @@ public class CameraStore extends Store<CameraState> {
 
       try {
          CaptureRequest.Builder request = state().cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-         request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AE_ANTIBANDING_MODE_AUTO);
+         request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
          request.addTarget(state().previewSurface);
 
          state().cameraDevice
@@ -156,8 +160,21 @@ public class CameraStore extends Store<CameraState> {
       }
    }
 
-   private CameraState releaseCameraResources() {
-      CameraState newState = new CameraState(state());
+   private CameraState releaseCameraResources(CameraState state) {
+      CameraState newState = new CameraState(state);
+
+      newState = releaseSession(newState);
+
+      if (newState.cameraDevice != null) {
+         newState.cameraDevice.close();
+         newState.cameraDevice = null;
+      }
+
+      return newState;
+   }
+
+   private CameraState releaseSession(CameraState state) {
+      CameraState newState = new CameraState(state);
 
       if (newState.session != null) {
          try {
@@ -167,11 +184,6 @@ public class CameraStore extends Store<CameraState> {
          }
          newState.session.close();
          newState.session = null;
-      }
-
-      if (newState.cameraDevice != null) {
-         newState.cameraDevice.close();
-         newState.cameraDevice = null;
       }
 
       return newState;

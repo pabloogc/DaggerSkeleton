@@ -34,7 +34,7 @@ public class CameraState {
    @Override public String toString() {
       return "CameraState{" +
             "canOpenCamera=" + canOpenCamera +
-            ", cameraDevice=" + cameraDevice.getId() +
+            ", cameraDevice=" + cameraDevice +
             ", previewSurface=" + previewSurface +
             ", session=" + session +
             ", selectedCamera='" + selectedCamera + '\'' +
