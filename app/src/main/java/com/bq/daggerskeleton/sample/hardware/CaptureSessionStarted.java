@@ -10,4 +10,10 @@ public class CaptureSessionStarted implements Action {
    public CaptureSessionStarted(CameraCaptureSession session) {
       this.session = session;
    }
+
+   @Override public String toString() {
+      return "CaptureSessionStarted{" +
+            "session=" + session +
+            '}';
+   }
 }

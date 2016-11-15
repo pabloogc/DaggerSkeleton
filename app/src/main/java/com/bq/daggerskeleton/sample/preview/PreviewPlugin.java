@@ -16,7 +16,7 @@ import com.bq.daggerskeleton.sample.core.RootViewControllerPlugin;
 import com.bq.daggerskeleton.sample.hardware.CloseCameraAction;
 import com.bq.daggerskeleton.sample.hardware.OpenCameraAction;
 import com.bq.daggerskeleton.sample.hardware.PreviewSurfaceChangedAction;
-import com.bq.daggerskeleton.sample.hardware.SurfaceDestroyedAction;
+import com.bq.daggerskeleton.sample.hardware.PreviewSurfaceDestroyedAction;
 
 import javax.inject.Inject;
 
@@ -57,7 +57,7 @@ public class PreviewPlugin extends SimplePlugin {
          }
 
          @Override public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            Dispatcher.dispatch(new SurfaceDestroyedAction());
+            Dispatcher.dispatch(new PreviewSurfaceDestroyedAction());
             return true;
          }
 

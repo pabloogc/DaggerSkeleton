@@ -11,9 +11,11 @@ import android.view.MotionEvent;
 
 import com.bq.daggerskeleton.BuildConfig;
 import com.bq.daggerskeleton.R;
+import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.sample.CameraComponent;
 import com.bq.daggerskeleton.sample.CarlPlugin;
 import com.bq.daggerskeleton.sample.app.App;
+import com.bq.daggerskeleton.sample.app.LifeCycleAction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
       int pluginCount = pluginList.size();
       long[] loadTimes = new long[pluginCount];
 
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_CREATE));
+
       Timber.tag(LC_TAG).d("onCreate");
       for (int i = 0; i < pluginCount; i++) {
          Bundle state = null;
@@ -119,11 +123,14 @@ public class MainActivity extends AppCompatActivity {
    @Override
    public void onPostCreate(Bundle savedInstanceState) {
       super.onPostCreate(savedInstanceState);
+
       Timber.tag(LC_TAG).d("onPostCreate");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_POST_CREATE));
       for (Plugin component : pluginList) {
          component.onPostCreate();
       }
-      Timber.tag(LC_TAG).d("onComponentsCreated");
+
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_PLUGINS_CREATED));
       for (Plugin component : pluginList) {
          component.onComponentsCreated();
       }
@@ -132,7 +139,9 @@ public class MainActivity extends AppCompatActivity {
    @Override
    protected void onStart() {
       super.onStart();
+
       Timber.tag(LC_TAG).d("onStart");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_START));
       for (Plugin component : pluginList) {
          component.onStart();
       }
@@ -141,7 +150,9 @@ public class MainActivity extends AppCompatActivity {
    @Override
    protected void onResume() {
       super.onResume();
+
       Timber.tag(LC_TAG).d("onResume");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_RESUME));
       for (Plugin component : pluginList) {
          component.onResume();
       }
@@ -150,7 +161,9 @@ public class MainActivity extends AppCompatActivity {
    @Override
    protected void onPause() {
       super.onPause();
+
       Timber.tag(LC_TAG).d("onPause");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_PAUSE));
       for (Plugin component : pluginList) {
          component.onPause();
       }
@@ -159,7 +172,9 @@ public class MainActivity extends AppCompatActivity {
    @Override
    protected void onStop() {
       super.onStop();
+
       Timber.tag(LC_TAG).d("onStop");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_STOP));
       for (Plugin component : pluginList) {
          component.onStop();
       }
@@ -168,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
    @Override
    protected void onSaveInstanceState(@NonNull Bundle outState) {
       super.onSaveInstanceState(outState);
+
       Timber.tag(LC_TAG).d("onSaveInstanceState");
       ArrayList<Bundle> states = new ArrayList<>(pluginList.size());
       for (Plugin component : pluginList) {
@@ -181,7 +197,9 @@ public class MainActivity extends AppCompatActivity {
    @Override
    protected void onDestroy() {
       super.onDestroy();
+
       Timber.tag(LC_TAG).d("onDestroy");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_DESTROY));
       for (Plugin component : pluginList) {
          component.onDestroy();
       }
@@ -191,19 +209,20 @@ public class MainActivity extends AppCompatActivity {
    public void onConfigurationChanged(@NonNull Configuration newConfig) {
       super.onConfigurationChanged(newConfig);
 
-      Timber.tag(LC_TAG).d("onConfigurationChanged [%s]", newConfig);
-
       Timber.tag(LC_TAG).d("onDestroyDynamicView");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_DESTROY_DYNAMIC_VIEW));
       for (Plugin component : pluginList) {
          component.onDestroyDynamicView();
       }
 
       Timber.tag(LC_TAG).d("onConfigurationChanged");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_CONFIGURATION_CHANGED));
       for (Plugin component : pluginList) {
          component.onConfigurationChanged(newConfig);
       }
 
       Timber.tag(LC_TAG).d("onCreateDynamicView");
+      Dispatcher.dispatch(new LifeCycleAction(LifeCycleAction.Event.ON_CREATE_DYNAMIC_VIEW));
       for (Plugin component : pluginList) {
          component.onCreateDynamicView();
       }

@@ -9,6 +9,9 @@ import com.bq.daggerskeleton.sample.app.AppScope;
 import com.bq.daggerskeleton.flux.Action;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.Store;
+import com.bq.daggerskeleton.sample.app.LifeCycleAction;
+
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -28,21 +31,7 @@ public class RotationStore extends Store<RotationState> {
 
    @Inject RotationStore(App app) {
 
-      Dispatcher.subscribe(DeviceRotatedAction.class, a -> {
-         RotationState newState = new RotationState(state());
-         newState.deviceAccumulatedRotation = a.deviceAccumulatedRotation;
-         newState.deviceAbsoluteRotation = newState.deviceAccumulatedRotation;
-
-         while (newState.deviceAbsoluteRotation < 0) {
-            newState.deviceAbsoluteRotation += 360;
-         }
-         newState.deviceAbsoluteRotation = newState.deviceAbsoluteRotation % 360;
-
-         setState(newState);
-      });
-
       orientationEventListener = new OrientationEventListener(app) {
-
          private int lastBucketRotation = 0;
          private int lastBucket = 0;
          private int accumulatedRotation = 0;
@@ -76,7 +65,33 @@ public class RotationStore extends Store<RotationState> {
          }
       };
 
-      orientationEventListener.enable();
+      Dispatcher.subscribe(LifeCycleAction.class, a -> {
+         switch (a.event) {
+            case ON_CREATE:
+               setState(initialState()); //Reset
+               orientationEventListener.enable();
+               break;
+            case ON_DESTROY:
+               orientationEventListener.disable();
+               break;
+         }
+      });
+
+      Dispatcher.subscribe(DeviceRotatedAction.class, a -> {
+               RotationState newState = new RotationState(state());
+               newState.deviceAccumulatedRotation = a.deviceAccumulatedRotation;
+               newState.deviceAbsoluteRotation = newState.deviceAccumulatedRotation;
+
+               while (newState.deviceAbsoluteRotation < 0) {
+                  newState.deviceAbsoluteRotation += 360;
+               }
+               newState.deviceAbsoluteRotation = newState.deviceAbsoluteRotation % 360;
+
+               setState(newState);
+            });
+
+
+
    }
 
    @Module

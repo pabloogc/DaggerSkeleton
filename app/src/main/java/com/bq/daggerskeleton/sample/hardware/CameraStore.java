@@ -54,8 +54,15 @@ public class CameraStore extends Store<CameraState> {
       });
 
       //Clean-Up
-      Dispatcher.subscribe(SurfaceDestroyedAction.class, a -> setState(releaseCameraResources()));
       Dispatcher.subscribe(CloseCameraAction.class, a -> setState(releaseCameraResources()));
+
+      Dispatcher.subscribe(PreviewSurfaceDestroyedAction.class, a -> {
+         CameraState newState = new CameraState(state());
+         if (newState.previewSurface != null) {
+            newState.previewSurface = null;
+         }
+         setState(newState);
+      });
 
       Dispatcher.subscribe(PreviewSurfaceChangedAction.class, a -> {
          if (state().previewSurface != null) state().previewSurface.release();
@@ -160,10 +167,6 @@ public class CameraStore extends Store<CameraState> {
          }
          newState.session.close();
          newState.session = null;
-      }
-
-      if (newState.previewSurface != null) {
-         newState.previewSurface = null;
       }
 
       if (newState.cameraDevice != null) {
