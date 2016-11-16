@@ -18,7 +18,7 @@ public abstract class Store<S> {
 
    protected abstract S initialState();
 
-   public final Flowable<S> flowable() {
+   public Flowable<S> flowable() {
       return processor;
    }
 

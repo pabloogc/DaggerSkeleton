@@ -11,6 +11,8 @@ import com.bq.daggerskeleton.flux.Store;
 
 import java.util.ArrayList;
 
+import javax.inject.Named;
+
 import dagger.Module;
 import dagger.Provides;
 import timber.log.Timber;
@@ -22,9 +24,13 @@ public class App extends Application {
    @Override public void onCreate() {
       super.onCreate();
 
-      if (BuildConfig.DEBUG) {
+      //if (BuildConfig.DEBUG) {
          Timber.plant(new Timber.DebugTree());
-      }
+         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            Timber.tag("Fatal").e(e, "PID: %d", t.getId());
+            throw new RuntimeException(e);
+         });
+      //}
 
       long now = System.currentTimeMillis();
       appComponent = DaggerAppComponent.builder().appModule(new AppModule(this)).build();

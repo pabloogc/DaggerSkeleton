@@ -19,7 +19,6 @@ package com.bq.daggerskeleton.sample.views;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Matrix;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Size;
 import android.view.Surface;
@@ -40,7 +39,7 @@ public class AutoFitTextureView extends TextureView {
    private boolean aspectRatioResize;
    private boolean isOneToOne;
 
-   private int mPreviewWidth = 0;
+   private int previewWidth = 0;
    private int mPreviewHeight = 0;
    /**
     * Whenever a layout change is detected, we need to apply the new transformation
@@ -53,9 +52,9 @@ public class AutoFitTextureView extends TextureView {
          int width = right - left;
          int height = bottom - top;
 
-         if (mPreviewWidth != width || mPreviewHeight != height
+         if (previewWidth != width || mPreviewHeight != height
                || (aspectRatioResize)) {
-            mPreviewWidth = width;
+            previewWidth = width;
             mPreviewHeight = height;
             setTransformMatrix(width, height);
             aspectRatioResize = false;
@@ -120,19 +119,10 @@ public class AutoFitTextureView extends TextureView {
       float scaleX, scaleY;
       float scaledTextureWidth, scaledTextureHeight;
 
-      //Horizontal
-      if (width > height) {
-         scaledTextureWidth = Math.max(width,
-               (int) (height * aspectRatio));
-         scaledTextureHeight = Math.max(height * aspectRatioScale,
-               (int) (width / aspectRatio));
-         //Vertical
-      } else {
-         scaledTextureWidth = Math.max(width * aspectRatioScale,
-               (int) (height / aspectRatio));
-         scaledTextureHeight = Math.max(height,
-               (int) (width * aspectRatio));
-      }
+      scaledTextureWidth = Math.max(width * aspectRatioScale,
+            (int) (height / aspectRatio));
+      scaledTextureHeight = Math.max(height,
+            (int) (width * aspectRatio));
 
       scaleX = scaledTextureWidth / width;
       scaleY = scaledTextureHeight / height;
@@ -146,15 +136,6 @@ public class AutoFitTextureView extends TextureView {
 
       matrix.setScale(scaleX, scaleY, px, py);
       setTransform(matrix);
-
-      // init the position (this seems to be necessary too when the ratio is 16/9
-      //		mTextureView.setX(0);
-      //		mTextureView.setY(0);
-
-      // Calculate the new preview rectangle.
-      RectF previewRect = new RectF(0, 0, width, height);
-      matrix.mapRect(previewRect);
-
    }
 
    /**
@@ -189,7 +170,7 @@ public class AutoFitTextureView extends TextureView {
    }
 
    public Size getPreviewSize() {
-      return new Size(mPreviewWidth, mPreviewHeight);
+      return new Size(previewWidth, mPreviewHeight);
    }
 
    public interface OnTextureViewChangeListener {

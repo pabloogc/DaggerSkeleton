@@ -6,7 +6,6 @@ import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Size;
 import android.view.TextureView;
@@ -38,6 +37,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
+import timber.log.Timber;
 
 
 @PluginScope
@@ -57,32 +57,41 @@ public class PreviewPlugin extends SimplePlugin {
    }
 
    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
-      View rootView = View.inflate(activity, R.layout.plugin_preview, rootViewControllerPlugin.getPreviewContainer());
-      ButterKnife.bind(this, rootView);
       container = rootViewControllerPlugin.getPreviewContainer();
-      textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-         @Override
-         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            Size bufferPreviewSize = configureTextureView();
-            Dispatcher.dispatch(new PreviewSurfaceReadyAction(surface, bufferPreviewSize.getWidth(), bufferPreviewSize.getHeight()));
-         }
+      track(cameraStore.flowable()
+            .filter(s -> s.selectedCamera != null && s.cameraDevice != null)
+            //need to wait for camera to have permissions, otherwise we can't configure the texture view
+            //with the camera outputs
+            .take(1)
+            .subscribe(s -> {
+               View rootView = View.inflate(activity, R.layout.plugin_preview, rootViewControllerPlugin.getPreviewContainer());
+               ButterKnife.bind(this, rootView);
+               textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+                  @Override
+                  public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+                     applyRatio();
+                     Size bufferPreviewSize = calculateBufferSize();
+                     Dispatcher.dispatch(new PreviewSurfaceReadyAction(surface, bufferPreviewSize.getWidth(), bufferPreviewSize.getHeight()));
+                  }
 
-         @Override
-         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-            configureMatrix();
-         }
+                  @Override
+                  public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+                     Timber.v("Preview Surface changed: %dx%d", width, height);
+                     applyRatio(); //We don't care about the preview size, we already know it
+                  }
 
-         @Override public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            Dispatcher.dispatch(new PreviewSurfaceDestroyedAction());
-            return true;
-         }
+                  @Override public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+                     Dispatcher.dispatch(new PreviewSurfaceDestroyedAction());
+                     return true;
+                  }
 
-         @Override public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-         }
-      });
+                  @Override public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+                  }
+               });
+            }));
    }
 
-   private Size configureTextureView() {
+   private Size calculateBufferSize() {
       CameraState s = cameraStore.state();
       CameraCharacteristics characteristics = s.availableCameras.get(s.selectedCamera);
       StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
@@ -95,21 +104,17 @@ public class PreviewPlugin extends SimplePlugin {
 
       final float ratio = AutoFitTextureView.RATIO_STANDARD;
 
-      Size bufferSize = PreviewUtil.chooseOptimalSize(
-            configurationMap.getOutputSizes(ImageFormat.JPEG), //options
-            textureView.getWidth(),
-            (int) (textureView.getWidth() * ratio),
-            container.getWidth(),
-            container.getHeight(),
-            captureSize
+      return PreviewUtil.chooseOptimalSize(
+            configurationMap.getOutputSizes(SurfaceTexture.class), //Options
+            textureView.getWidth(), //Target width
+            (int) (textureView.getWidth() * ratio), //Calculated target height, keeping ratio
+            container.getWidth(), //Max width
+            container.getHeight(), //Max height
+            captureSize //Aspect ratio
       );
-
-      textureView.getSurfaceTexture().setDefaultBufferSize(bufferSize.getWidth(), bufferSize.getHeight());
-      textureView.setAspectRatio(4f / 3f);
-      return bufferSize;
    }
 
-   private void configureMatrix() {
+   private void applyRatio() {
       textureView.setAspectRatio(4f / 3f);
    }
 

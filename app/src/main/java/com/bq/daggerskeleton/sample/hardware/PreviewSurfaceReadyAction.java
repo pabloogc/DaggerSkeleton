@@ -9,10 +9,12 @@ public final class PreviewSurfaceReadyAction implements Action {
    public final int width;
    public final int height;
 
-   public PreviewSurfaceReadyAction(SurfaceTexture surfaceTexture, int width, int height) {
+   public PreviewSurfaceReadyAction(SurfaceTexture surfaceTexture,
+                                    int previewSurfaceWidth,
+                                    int previewSurfaceHeight) {
       this.surfaceTexture = surfaceTexture;
-      this.width = width;
-      this.height = height;
+      this.width = previewSurfaceWidth;
+      this.height = previewSurfaceHeight;
    }
 
    @Override public String toString() {

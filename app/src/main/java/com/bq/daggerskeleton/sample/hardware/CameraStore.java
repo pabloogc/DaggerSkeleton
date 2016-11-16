@@ -9,6 +9,7 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.util.Size;
 import android.view.Surface;
 
 import com.bq.daggerskeleton.flux.Dispatcher;
@@ -18,6 +19,8 @@ import com.bq.daggerskeleton.sample.app.AppScope;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -33,6 +36,7 @@ public class CameraStore extends Store<CameraState> {
    private final App app;
    private final CameraManager cameraManager;
    private final Handler backgroundHandler;
+   private final Semaphore sessionLock = new Semaphore(1);
 
    @Override protected CameraState initialState() {
       return new CameraState();
@@ -58,8 +62,8 @@ public class CameraStore extends Store<CameraState> {
 
       Dispatcher.subscribe(PreviewSurfaceDestroyedAction.class, a -> {
          CameraState newState = new CameraState(state());
-         if (newState.previewSurface != null) {
-            newState.previewSurface = null;
+         if (newState.previewTexture != null) {
+            newState.previewTexture = null;
          }
          setState(newState);
       });
@@ -73,7 +77,9 @@ public class CameraStore extends Store<CameraState> {
          }
 
          //Update buffer and surface target
+         newState.previewTexture = a.surfaceTexture;
          newState.previewSurface = new Surface(a.surfaceTexture);
+         newState.previewSize = new Size(a.width, a.height);
          setState(newState);
 
          tryToStartSession();
@@ -105,7 +111,7 @@ public class CameraStore extends Store<CameraState> {
             //noinspection MissingPermission
             cameraManager.openCamera(newState.selectedCamera, new CameraDevice.StateCallback() {
                @Override public void onOpened(@NonNull CameraDevice camera) {
-                  Dispatcher.dispatch(new CameraOpenedAction(camera));
+                  Dispatcher.dispatchOnUi(new CameraOpenedAction(camera));
                }
 
                @Override public void onDisconnected(@NonNull CameraDevice camera) {
@@ -113,6 +119,7 @@ public class CameraStore extends Store<CameraState> {
                }
 
                @Override public void onError(@NonNull CameraDevice camera, int error) {
+                  Timber.e("Camera error: %d", error);
                }
             }, backgroundHandler);
          } catch (CameraAccessException e) {
@@ -131,17 +138,40 @@ public class CameraStore extends Store<CameraState> {
       //Preconditions
       if (state().session != null) return; //Already opened
       if (state().cameraDevice == null) return;
-      if (state().previewSurface == null) return;
+      if (state().previewTexture == null) return;
 
       try {
+         boolean acquired = sessionLock.tryAcquire(3, TimeUnit.SECONDS);
+
+         if (!acquired) {
+            // STOPSHIP: 16/11/2016
+            // TODO: 16/11/2016 Move to an error state and notify user properly
+            sessionLock.release();
+            throw new IllegalStateException("Failed to create camera in time");
+         }
+
+         //Already opened, need this double check to avoid locking
+         //for the most common case, only 1 source trying to create the session
+         if (state().session != null || state().previewTexture == null || state().cameraDevice == null) {
+            sessionLock.release();
+            return;
+         }
+
+
          CaptureRequest.Builder request = state().cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
          request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
+         //Configure preview surface
+         Size previewSize = state().previewSize;
+         state().previewTexture.setDefaultBufferSize(previewSize.getWidth(), previewSize.getHeight());
          request.addTarget(state().previewSurface);
+
 
          state().cameraDevice
                .createCaptureSession(Collections.singletonList(state().previewSurface), new CameraCaptureSession.StateCallback() {
                   @Override public void onConfigured(@NonNull CameraCaptureSession session) {
-                     Dispatcher.dispatch(new CaptureSessionStarted(session));
+                     sessionLock.release();
+                     Dispatcher.dispatchOnUi(new CaptureSessionStarted(session));
                      try {
                         session.setRepeatingRequest(request.build(), null, backgroundHandler);
                      } catch (CameraAccessException e) {
@@ -150,42 +180,59 @@ public class CameraStore extends Store<CameraState> {
                   }
 
                   @Override public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                     sessionLock.release();
                      Timber.e("Failed to create session. %s", state());
-
+                     throw new IllegalStateException("Failed to create session with the current configuration");
+                     //TODO: Move to a default / safe state when the session can be created
                   }
-               }, null);
+               }, backgroundHandler);
 
       } catch (CameraAccessException e) {
+         sessionLock.release();
          Timber.e(e);
+      } catch (InterruptedException e) {
+         e.printStackTrace(); //Should never happen
       }
    }
 
    private CameraState releaseCameraResources(CameraState state) {
       CameraState newState = new CameraState(state);
+      try {
+         boolean acquired = sessionLock.tryAcquire(3, TimeUnit.SECONDS);
+         if (!acquired) {
+            // STOPSHIP: 16/11/2016
+            // TODO: 16/11/2016 Move to an error state and notify user properly
+            throw new IllegalStateException("Failed to close camera in time");
+         }
 
-      newState = releaseSession(newState);
+         newState = releaseSession(newState);
+         if (newState.cameraDevice != null) {
+            newState.cameraDevice.close();
+            newState.cameraDevice = null;
+         }
 
-      if (newState.cameraDevice != null) {
-         newState.cameraDevice.close();
-         newState.cameraDevice = null;
+         sessionLock.release();
+      } catch (InterruptedException e) {
+         e.printStackTrace(); //Should never happen
       }
-
       return newState;
    }
 
    private CameraState releaseSession(CameraState state) {
       CameraState newState = new CameraState(state);
-
       if (newState.session != null) {
          try {
             newState.session.stopRepeating();
-         } catch (CameraAccessException e) {
+            newState.session.close();
+         } catch (CameraAccessException | IllegalStateException e) {
+            //Will throw IllegalStateException if it is already closed
+            //due to a race condition not worth controlling.
+            //There is no way to check the camera state other than capturing the exception
+            Timber.d("Error trying to release the session");
             Timber.e(e);
          }
-         newState.session.close();
          newState.session = null;
       }
-
       return newState;
    }
 

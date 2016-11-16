@@ -1,11 +1,12 @@
 package com.bq.daggerskeleton.flux;
 
 
+import android.os.Handler;
 import android.os.Looper;
-import android.support.compat.BuildConfig;
 
 import org.jetbrains.annotations.TestOnly;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.TreeSet;
 
@@ -19,6 +20,9 @@ public class Dispatcher {
    public static final int DEFAULT_PRIORITY = 50;
 
    private static final HashMap<Class<? extends Action>, TreeSet<Subscription<? extends Action>>> dispatchMap = new HashMap<>();
+   private static final Handler uiHandler = new Handler();
+   private static final long startTime = System.currentTimeMillis();
+   private static long lastActionTime = System.currentTimeMillis();
 
    private Dispatcher() {
       //No instances
@@ -26,7 +30,9 @@ public class Dispatcher {
 
    public static void dispatch(Action action) {
       ensureUiThread();
-      Timber.i("Action -> %s", action);
+      long now = System.currentTimeMillis();
+      long diff = now - lastActionTime;
+      Timber.i("Action - %5d [%3d] -> %s", now - startTime, (diff > 999 ? 999 : diff), action);
       TreeSet<Subscription<? extends Action>> set = dispatchMap.get(action.getClass());
       if (set != null) {
          for (Subscription<? extends Action> subscription : set) {
@@ -38,6 +44,11 @@ public class Dispatcher {
             }
          }
       }
+      lastActionTime = now;
+   }
+
+   public static void dispatchOnUi(Action action) {
+      uiHandler.post(() -> dispatch(action));
    }
 
    public static <T extends Action> Flowable<T> subscribe(Class<T> actionType) {
@@ -70,7 +81,6 @@ public class Dispatcher {
    }
 
    private static void ensureUiThread() {
-      if (!BuildConfig.DEBUG) return;
       if (Looper.myLooper() != Looper.getMainLooper()) {
          throw new IllegalStateException("Dispatcher is not thread safe " +
                "and can only be accessed from Ui thread.");

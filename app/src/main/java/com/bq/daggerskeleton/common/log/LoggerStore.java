@@ -6,7 +6,12 @@ import com.bq.daggerskeleton.flux.Store;
 import com.bq.daggerskeleton.sample.app.App;
 import com.bq.daggerskeleton.sample.app.AppScope;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -135,6 +140,30 @@ public class LoggerStore extends Store<LoggerState> {
       }
 
       return disposable;
+   }
+
+   public static String fileToString(File file) {
+      BufferedReader reader;
+      try {
+         reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+         StringBuilder sb = new StringBuilder();
+         String line;
+         Boolean firstLine = true;
+         while ((line = reader.readLine()) != null) {
+            if (firstLine) {
+               sb.append(line);
+               firstLine = false;
+            } else {
+               sb.append("\n").append(line);
+            }
+         }
+         reader.close();
+         return sb.toString();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+
+      return "Error reading File";
    }
 
    @Module
