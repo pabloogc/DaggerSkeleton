@@ -102,12 +102,12 @@ public class AutoFitTextureView extends TextureView {
       int newHeight;
 
       if (isInHorizontal) {
-         newHeight = getMeasuredHeight();
-         if (isOneToOne) newWidth = getMeasuredHeight();
+         newHeight = height;
+         if (isOneToOne) newWidth = width;
          else newWidth = (int) (newHeight * aspectRatio);
       } else {
-         newWidth = getMeasuredWidth();
-         if (isOneToOne) newHeight = getMeasuredWidth();
+         newWidth = width;
+         if (isOneToOne) newHeight = height;
          else newHeight = (int) (newWidth * aspectRatio);
       }
 
@@ -115,7 +115,7 @@ public class AutoFitTextureView extends TextureView {
    }
 
    private void setTransformMatrix(int width, int height) {
-      matrix = getTransform(matrix);
+      matrix = new Matrix();
       float scaleX, scaleY;
       float scaledTextureWidth, scaledTextureHeight;
 
