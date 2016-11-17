@@ -96,41 +96,41 @@ public class CameraStore extends Store<CameraState> {
    }
 
    private CameraState openCamera(CameraState state) {
+      if (!state().canOpenCamera) return state;
       CameraState newState = new CameraState(state);
-      if (state().canOpenCamera) {
-         try {
-            if (!cameraLock.tryAcquire(CAMERA_LOCK_TIMEOUT, TimeUnit.MILLISECONDS)) {
-               // STOPSHIP: 16/11/2016
-               // TODO: 16/11/2016 Move to an error status and notify user properly
-               throw new IllegalStateException("Failed to open camera in time");
-            }
-            Timber.v("Opening camera");
 
-            populateCameraMap(newState.availableCameras);
-            newState.selectedCamera = selectDefaultCamera(newState.availableCameras);
-            try {
-               //noinspection MissingPermission
-               cameraManager.openCamera(newState.selectedCamera, new CameraDevice.StateCallback() {
-                  @Override public void onOpened(@NonNull CameraDevice camera) {
-                     cameraLock.release();
-                     Dispatcher.dispatchOnUi(new CameraOpenedAction(camera));
-                  }
-
-                  @Override public void onDisconnected(@NonNull CameraDevice camera) {
-                     Timber.d("Camera disconnected: %s", camera.getId());
-                  }
-
-                  @Override public void onError(@NonNull CameraDevice camera, int error) {
-                     cameraLock.release();
-                     Timber.e("Camera error: %d", error);
-                  }
-               }, backgroundHandler);
-            } catch (CameraAccessException e) {
-               Timber.e(e);
-            }
-         } catch (InterruptedException e) {
-            e.printStackTrace();
+      try {
+         if (!cameraLock.tryAcquire(CAMERA_LOCK_TIMEOUT, TimeUnit.MILLISECONDS)) {
+            // STOPSHIP: 16/11/2016
+            // TODO: 16/11/2016 Move to an error status and notify user properly
+            throw new IllegalStateException("Failed to open camera in time");
          }
+         Timber.v("Opening camera");
+
+         populateCameraMap(newState.availableCameras);
+         newState.selectedCamera = selectDefaultCamera(newState.availableCameras);
+         try {
+            //noinspection MissingPermission
+            cameraManager.openCamera(newState.selectedCamera, new CameraDevice.StateCallback() {
+               @Override public void onOpened(@NonNull CameraDevice camera) {
+                  cameraLock.release();
+                  Dispatcher.dispatchOnUi(new CameraOpenedAction(camera));
+               }
+
+               @Override public void onDisconnected(@NonNull CameraDevice camera) {
+                  Timber.d("Camera disconnected: %s", camera.getId());
+               }
+
+               @Override public void onError(@NonNull CameraDevice camera, int error) {
+                  cameraLock.release();
+                  Timber.e("Camera error: %d", error);
+               }
+            }, backgroundHandler);
+         } catch (CameraAccessException e) {
+            Timber.e(e);
+         }
+      } catch (InterruptedException e) {
+         e.printStackTrace();
       }
 
       return newState;
