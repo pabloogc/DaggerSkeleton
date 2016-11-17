@@ -14,8 +14,6 @@ public abstract class Store<S> {
    @Nullable
    private S state;
 
-   private Emitter<S> testEmitter;
-
    @LoggerPlugin.AutoLog
    private final PublishProcessor<S> processor = PublishProcessor.create();
 
@@ -27,7 +25,6 @@ public abstract class Store<S> {
 
    @NonNull
    public final S state() {
-      if(testEmitter != null)
       if (state == null) state = initialState();
       return state;
    }
@@ -37,6 +34,4 @@ public abstract class Store<S> {
       state = newState;
       processor.onNext(state);
    }
-
-
 }

@@ -1,12 +1,16 @@
 package com.bq.daggerskeleton.sample.preview;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.util.Size;
 import android.view.TextureView;
 import android.view.View;
@@ -22,6 +26,8 @@ import com.bq.daggerskeleton.sample.hardware.CameraState;
 import com.bq.daggerskeleton.sample.hardware.CameraStore;
 import com.bq.daggerskeleton.sample.hardware.CloseCameraAction;
 import com.bq.daggerskeleton.sample.hardware.OpenCameraAction;
+import com.bq.daggerskeleton.sample.hardware.session.SessionState;
+import com.bq.daggerskeleton.sample.hardware.session.SessionStore;
 import com.bq.daggerskeleton.sample.views.AutoFitTextureView;
 
 import java.util.Arrays;
@@ -43,14 +49,18 @@ public class PreviewPlugin extends SimplePlugin {
 
    private final Activity activity;
    private final CameraStore cameraStore;
+   private final SessionStore sessionStore;
    private final RootViewControllerPlugin rootViewControllerPlugin;
    private ViewGroup container;
    @BindView(R.id.preview_texture) AutoFitTextureView textureView;
 
-   @Inject
-   PreviewPlugin(Activity activity, CameraStore cameraStore, RootViewControllerPlugin rootViewControllerPlugin) {
+   @Inject PreviewPlugin(Activity activity,
+                         CameraStore cameraStore,
+                         SessionStore sessionStore,
+                         RootViewControllerPlugin rootViewControllerPlugin) {
       this.activity = activity;
       this.cameraStore = cameraStore;
+      this.sessionStore = sessionStore;
       this.rootViewControllerPlugin = rootViewControllerPlugin;
    }
 
@@ -88,11 +98,23 @@ public class PreviewPlugin extends SimplePlugin {
          @Override public void onSurfaceTextureUpdated(SurfaceTexture surface) {
          }
       });
+
+      track(
+            sessionStore.flowable()
+                  .filter(s -> s.status == SessionState.Status.ERROR)
+                  .subscribe(s -> {
+                     new AlertDialog.Builder(activity)
+                           .setMessage(Log.getStackTraceString(s.error))
+                           .setCancelable(false)
+                           .setPositiveButton("OK :(", (dialog, which) -> dialog.dismiss())
+                           .show();
+                  })
+      );
    }
 
    private Size calculateBufferSize() {
       CameraState s = cameraStore.state();
-      if(s.cameraDevice == null) {
+      if (s.cameraDevice == null) {
          throw new IllegalStateException("Need an open camera to calculate the buffer size based on capabilities");
       }
 

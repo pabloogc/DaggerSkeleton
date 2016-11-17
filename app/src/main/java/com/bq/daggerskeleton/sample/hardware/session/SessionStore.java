@@ -90,11 +90,23 @@ public class SessionStore extends Store<SessionState> {
          cameraState.cameraDevice
                .createCaptureSession(Collections.singletonList(cameraState.previewSurface), new CameraCaptureSession.StateCallback() {
                   @Override public void onConfigured(@NonNull CameraCaptureSession session) {
+                     try {
+                        session.getInputSurface();
+                        //This call is irrelevant,
+                        //however session might have closed and this will throw an IllegalStateException.
+                        //This happens if another camera app (or this one in another PID) takes control
+                        //of the camera while its opening
+                     } catch (IllegalStateException e) {
+                        Timber.e("Another process took control of the camera while creating the session, aborting!");
+                        Dispatcher.dispatchOnUi(new SessionChangedAction(null, SessionState.Status.ERROR, e));
+                        return;
+                     }
                      Dispatcher.dispatchOnUi(new SessionChangedAction(session, SessionState.Status.READY));
                      try {
                         session.setRepeatingRequest(request.build(), null, backgroundHandler);
                      } catch (CameraAccessException e) {
                         Timber.e(e);
+                        Dispatcher.dispatchOnUi(new SessionChangedAction(null, SessionState.Status.ERROR, e));
                      }
                   }
 
