@@ -72,6 +72,9 @@ public class RotationStore extends Store<RotationState> {
    }
 
    private static final class OrientationHandler extends OrientationEventListener {
+
+      private static final int MIN_ROTATION_DISTANCE_FOR_CHANGE = 25;
+
       private int lastOrientation = -1;
       private int lastBucket = 0;
       private int accumulatedRotation = 0;
@@ -92,30 +95,31 @@ public class RotationStore extends Store<RotationState> {
       @Override public void onOrientationChanged(int orientation) {
          if (orientation == ORIENTATION_UNKNOWN) return;
 
-         //After calling onResume an invalid orientation is produced, 270 in BQ devices, so we skip it
-         if (toSkip > 0 && (orientation == 270 || orientation == 90 || orientation == 180)) {
-            Timber.d("Orientation: %d", orientation);
+         //After calling onResume an invalid orientation is produced, 270 in BQ devices, so we skip it.
+         //To be safe we also skip 0, 90, and 180, in case other sensors produce those default values.
+         //Apparently only 1 bad value is produced, so toSkip is always 1.
+         if (toSkip > 0 && (orientation == 0 || orientation == 270 || orientation == 90 || orientation == 180)) {
+            Timber.d("Skipping bad orientation: %d", orientation);
             toSkip--;
             return;
          }
 
          if (lastOrientation == -1) {
-            //Ignore first value and big swap distances
+            //Ignore first value
             lastOrientation = orientation;
             return;
          }
+
          int bucket = 0;
-
-
          if (orientation >= 315 && orientation < 360) bucket = 0;
          else if (orientation >= 0 && orientation < 45) bucket = 0;
          else if (orientation >= 45 && orientation < 135) bucket = 1;
          else if (orientation >= 135 && orientation < 225) bucket = 2;
          else if (orientation >= 225 && orientation < 315) bucket = 3;
 
-         int rotationDiff = Math.abs(orientation - lastOrientation);
+         int rotationDiff = radianDistance(orientation, lastOrientation);
 
-         if (bucket != lastBucket && rotationDiff > 30) {
+         if (bucket != lastBucket && rotationDiff > MIN_ROTATION_DISTANCE_FOR_CHANGE) {
             int rotationSteps;
             //Need to hardcode both corner cases
             if (lastBucket == 3 && bucket == 0) rotationSteps = -1;
@@ -142,9 +146,6 @@ public class RotationStore extends Store<RotationState> {
 
       void skipNextInvalid() {
          this.toSkip = 1;
-         //After OnResume happens
-         //the second value produced by the listener
-         //is not valid, so we skip it when this counter reaches 0
       }
    }
 
