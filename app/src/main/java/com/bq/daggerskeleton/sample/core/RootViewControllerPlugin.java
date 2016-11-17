@@ -71,6 +71,14 @@ public class RootViewControllerPlugin extends SimplePlugin {
       return previewContainer;
    }
 
+   public ViewGroup getShutterContainer() {
+      return shutterContainer;
+   }
+
+   public ViewGroup getSideControlsContainer() {
+      return sideControlsContainer;
+   }
+
    @Module
    public static abstract class RootViewControllerModule {
       @PluginScope @Provides @IntoMap @ClassKey(RootViewControllerPlugin.class)

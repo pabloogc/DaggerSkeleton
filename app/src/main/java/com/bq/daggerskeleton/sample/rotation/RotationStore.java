@@ -39,7 +39,7 @@ public class RotationStore extends Store<RotationState> {
             case ON_RESUME:
                orientationEventListener.skipNextInvalid();
                break;
-            //Reset all state in both cases so views are easier to implement (no corner cases)
+            //Reset all status in both cases so views are easier to implement (no corner cases)
             case ON_CREATE:
                orientationEventListener.reset();
                setState(initialState()); //Reset

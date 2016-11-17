@@ -1,4 +1,4 @@
-package com.bq.daggerskeleton.sample.hardware;
+package com.bq.daggerskeleton.sample.preview;
 
 import com.bq.daggerskeleton.flux.Action;
 

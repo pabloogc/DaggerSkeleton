@@ -17,7 +17,11 @@ import timber.log.Timber;
 
 public class Dispatcher {
 
+   public static final int VERY_HIGH_PRIORITY = 5;
+   public static final int HIGH_PRIORITY = 25;
    public static final int DEFAULT_PRIORITY = 50;
+   public static final int LOW_PRIORITY = 75;
+   public static final int VERY_LOW_PRIORITY = 50;
 
    private static final HashMap<Class<? extends Action>, TreeSet<Subscription<? extends Action>>> dispatchMap = new HashMap<>();
    private static final Handler uiHandler = new Handler();

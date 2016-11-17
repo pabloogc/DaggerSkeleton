@@ -22,8 +22,6 @@ import com.bq.daggerskeleton.sample.hardware.CameraState;
 import com.bq.daggerskeleton.sample.hardware.CameraStore;
 import com.bq.daggerskeleton.sample.hardware.CloseCameraAction;
 import com.bq.daggerskeleton.sample.hardware.OpenCameraAction;
-import com.bq.daggerskeleton.sample.hardware.PreviewSurfaceReadyAction;
-import com.bq.daggerskeleton.sample.hardware.PreviewSurfaceDestroyedAction;
 import com.bq.daggerskeleton.sample.views.AutoFitTextureView;
 
 import java.util.Arrays;
@@ -58,51 +56,58 @@ public class PreviewPlugin extends SimplePlugin {
 
    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
       container = rootViewControllerPlugin.getPreviewContainer();
-      track(cameraStore.flowable()
-            .filter(s -> s.selectedCamera != null && s.cameraDevice != null)
-            //need to wait for camera to have permissions, otherwise we can't configure the texture view
-            //with the camera outputs
-            .take(1)
-            .subscribe(s -> {
-               View rootView = View.inflate(activity, R.layout.plugin_preview, rootViewControllerPlugin.getPreviewContainer());
-               ButterKnife.bind(this, rootView);
-               textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-                  @Override
-                  public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-                     applyRatio();
-                     Size bufferPreviewSize = calculateBufferSize();
-                     Dispatcher.dispatch(new PreviewSurfaceReadyAction(surface, bufferPreviewSize.getWidth(), bufferPreviewSize.getHeight()));
-                  }
+      View rootView = View.inflate(activity, R.layout.plugin_preview, rootViewControllerPlugin.getPreviewContainer());
+      ButterKnife.bind(this, rootView);
+      textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+         @Override
+         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            applyRatio();
+            Dispatcher.dispatch(new PreviewSurfaceReadyAction(surface));
 
-                  @Override
-                  public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-                     Timber.v("Preview Surface changed: %dx%d", width, height);
-                     applyRatio(); //We don't care about the preview size, we already know it
-                  }
+            //Now we wait for camera to open to calculate the appropriate buffer size
+            track(cameraStore.flowable()
+                  .startWith(cameraStore.state()) //It might have opened already
+                  .filter(s -> s.cameraDevice != null)
+                  .take(1)
+                  .subscribe(s -> {
+                     Dispatcher.dispatch(new PreviewSurfaceBufferCalculatedAction(calculateBufferSize()));
+                  }));
+         }
 
-                  @Override public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-                     Dispatcher.dispatch(new PreviewSurfaceDestroyedAction());
-                     return true;
-                  }
+         @Override
+         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+            Timber.v("Preview Surface changed: %dx%d", width, height);
+            applyRatio(); //We don't care about the preview size, we already know it
+         }
 
-                  @Override public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-                  }
-               });
-            }));
+         @Override public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+            Dispatcher.dispatch(new PreviewSurfaceDestroyedAction());
+            return true;
+         }
+
+         @Override public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+         }
+      });
    }
 
    private Size calculateBufferSize() {
       CameraState s = cameraStore.state();
-      CameraCharacteristics characteristics = s.availableCameras.get(s.selectedCamera);
-      StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+      if(s.cameraDevice == null) {
+         throw new IllegalStateException("Need an open camera to calculate the buffer size based on capabilities");
+      }
 
-      if (configurationMap == null) return new Size(640, 480); //4:3
+      final float ratio = AutoFitTextureView.RATIO_STANDARD;
+      final CameraCharacteristics characteristics = s.availableCameras.get(s.cameraDevice.getId());
+      final StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+      if (configurationMap == null) {
+         //No configuration map, should not happen but lets be safe here
+         return new Size(640, 480); //4:3
+      }
 
       Size captureSize = Collections.max(
             Arrays.asList(configurationMap.getOutputSizes(ImageFormat.JPEG)),
             new PreviewUtil.CompareSizesByArea());
-
-      final float ratio = AutoFitTextureView.RATIO_STANDARD;
 
       return PreviewUtil.chooseOptimalSize(
             configurationMap.getOutputSizes(SurfaceTexture.class), //Options
@@ -129,8 +134,8 @@ public class PreviewPlugin extends SimplePlugin {
    @Module
    public static abstract class PreviewModule {
       @Provides @PluginScope @IntoMap @ClassKey(PreviewPlugin.class)
-      static Plugin provideAlice(PreviewPlugin previewPlugin) {
-         return previewPlugin;
+      static Plugin providePreviewPlugin(PreviewPlugin plugin) {
+         return plugin;
       }
    }
 }

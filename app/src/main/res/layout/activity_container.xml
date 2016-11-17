@@ -21,22 +21,12 @@
 
 
     <RelativeLayout
+        android:gravity="center"
         android:id="@+id/shutter_container"
         android:layout_alignParentBottom="true"
         android:layout_height="130dp"
         android:layout_width="match_parent"
         tools:background="#4400ffff">
-
-        <Button
-            android:height="64dp"
-            android:id="@+id/take_photo_button"
-            android:layout_centerInParent="true"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:layout_width="wrap_content"
-            android:text="📷"
-            android:width="64dp"/>
-
     </RelativeLayout>
 
     <LinearLayout

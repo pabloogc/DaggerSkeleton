@@ -8,6 +8,7 @@ import com.bq.daggerskeleton.common.Plugin;
 import com.bq.daggerskeleton.common.PluginScope;
 import com.bq.daggerskeleton.sample.core.RootViewControllerPlugin;
 import com.bq.daggerskeleton.sample.misc.RequestPermissionPlugin;
+import com.bq.daggerskeleton.sample.photo.TakePhotoPlugin;
 import com.bq.daggerskeleton.sample.preview.PreviewPlugin;
 
 import java.util.Map;
@@ -23,6 +24,7 @@ import dagger.Subcomponent;
             RequestPermissionPlugin.RequestPermissionModule.class,
 
             PreviewPlugin.PreviewModule.class,
+            TakePhotoPlugin.TakePhotoModule.class,
             BobPlugin.BobModule.class,
 
             CarlPlugin.CarlPluginModule.class,

@@ -24,13 +24,12 @@ public class App extends Application {
    @Override public void onCreate() {
       super.onCreate();
 
-      //if (BuildConfig.DEBUG) {
-         Timber.plant(new Timber.DebugTree());
-         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-            Timber.tag("Fatal").e(e, "PID: %d", t.getId());
-            throw new RuntimeException(e);
-         });
-      //}
+      Timber.plant(new Timber.DebugTree());
+      Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+      Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+         Timber.tag("Fatal").e(e, "PID: %d", t.getId());
+         defaultUncaughtExceptionHandler.uncaughtException(t, e);
+      });
 
       long now = System.currentTimeMillis();
       appComponent = DaggerAppComponent.builder().appModule(new AppModule(this)).build();
