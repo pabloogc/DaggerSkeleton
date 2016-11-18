@@ -1,9 +1,7 @@
 package com.bq.daggerskeleton.sample.hardware;
 
 import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
 import android.support.annotation.NonNull;
 import android.util.Size;
 import android.view.Surface;
@@ -12,6 +10,8 @@ import com.bq.daggerskeleton.sample.hardware.session.SessionState;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import durdinapps.rxcamera2.RxCameraDevice;
 
 public class CameraState {
 
@@ -24,7 +24,7 @@ public class CameraState {
    public Surface previewSurface;
    public Size previewSize;
 
-   public CameraDevice cameraDevice;
+   public RxCameraDevice cameraDevice;
 
    @NonNull
    public SessionState sessionState = new SessionState(); //This is a good candidate for another store

@@ -1,23 +1,24 @@
 package com.bq.daggerskeleton.sample.hardware.session;
 
-import android.hardware.camera2.CameraCaptureSession;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.bq.daggerskeleton.flux.Action;
 
+import durdinapps.rxcamera2.RxCameraCaptureSession;
+
 public class SessionChangedAction implements Action {
 
    @NonNull public final SessionState.Status status;
    @Nullable public final Throwable error;
-   @Nullable public final CameraCaptureSession session;
+   @Nullable public final RxCameraCaptureSession session;
 
-   public SessionChangedAction(@Nullable CameraCaptureSession session,
+   public SessionChangedAction(@Nullable RxCameraCaptureSession session,
                                @NonNull SessionState.Status status) {
       this(session, status, null);
    }
 
-   public SessionChangedAction(@Nullable CameraCaptureSession session,
+   public SessionChangedAction(@Nullable RxCameraCaptureSession session,
                                @NonNull SessionState.Status status, Throwable error) {
       this.session = session;
       this.status = status;

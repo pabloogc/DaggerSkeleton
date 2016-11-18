@@ -1,19 +1,19 @@
 package com.bq.daggerskeleton.sample.hardware;
 
-import android.hardware.camera2.CameraDevice;
-
 import com.bq.daggerskeleton.flux.Action;
 
-public class CameraOpenedAction implements Action {
-   public final CameraDevice camera;
+import durdinapps.rxcamera2.RxCameraDevice;
 
-   public CameraOpenedAction(CameraDevice camera) {
+public class CameraOpenedAction implements Action {
+   public final RxCameraDevice camera;
+
+   public CameraOpenedAction(RxCameraDevice camera) {
       this.camera = camera;
    }
 
    @Override public String toString() {
       return "CameraOpenedAction{" +
-            "camera=" + camera.getId() +
+            "camera=" + camera.getCameraDevice().getId() +
             '}';
    }
 }

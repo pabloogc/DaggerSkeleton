@@ -1,14 +1,15 @@
 package com.bq.daggerskeleton.sample.hardware.session;
 
 
-import android.hardware.camera2.CameraCaptureSession;
 import android.support.annotation.Nullable;
 
 import org.jetbrains.annotations.NotNull;
 
+import durdinapps.rxcamera2.RxCameraCaptureSession;
+
 public class SessionState {
 
-   public CameraCaptureSession session = null;
+   public RxCameraCaptureSession session = null;
    @NotNull public Status status = Status.NO_SESSION;
    @Nullable public Throwable error = null;
 

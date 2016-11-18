@@ -2,8 +2,6 @@ package com.bq.daggerskeleton.sample.preview;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DialogFragment;
-import android.content.DialogInterface;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraCharacteristics;
@@ -18,8 +16,8 @@ import android.view.ViewGroup;
 
 import com.bq.daggerskeleton.R;
 import com.bq.daggerskeleton.common.Plugin;
-import com.bq.daggerskeleton.common.SimplePlugin;
 import com.bq.daggerskeleton.common.PluginScope;
+import com.bq.daggerskeleton.common.SimplePlugin;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.sample.core.RootViewControllerPlugin;
 import com.bq.daggerskeleton.sample.hardware.CameraState;
@@ -119,7 +117,7 @@ public class PreviewPlugin extends SimplePlugin {
       }
 
       final float ratio = AutoFitTextureView.RATIO_STANDARD;
-      final CameraCharacteristics characteristics = s.availableCameras.get(s.cameraDevice.getId());
+      final CameraCharacteristics characteristics = s.availableCameras.get(s.cameraDevice.getCameraDevice().getId());
       final StreamConfigurationMap configurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
       if (configurationMap == null) {
