@@ -1,5 +1,6 @@
 package com.bq.daggerskeleton.sample.hardware;
 
+import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -8,6 +9,8 @@ import com.bq.daggerskeleton.common.MainActivity;
 import com.bq.daggerskeleton.sample.hardware.session.SessionState;
 import com.bq.daggerskeleton.sample.hardware.session.SessionStore;
 import com.bq.daggerskeleton.util.FluxUtil;
+import com.bq.daggerskeleton.util.Repeat;
+import com.bq.daggerskeleton.util.RepeatRule;
 import com.bq.daggerskeleton.util.RxCountingResourceRule;
 
 import org.junit.Rule;
@@ -25,14 +28,15 @@ import static org.junit.Assert.assertEquals;
 public class CameraStartupTest {
 
    @Rule
-   public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(MainActivity.class);
+   public ActivityTestRule<MainActivity> activityRule = new ActivityTestRule<>(MainActivity.class);
    @Rule public RxCountingResourceRule countingRule = new RxCountingResourceRule("cameraOpen");
+   @Rule public RepeatRule repeatRule = new RepeatRule();
 
    @Test
-   public void cameraOpensUnder300ms() {
+   public void camera_open_under_300ms() {
       countingRule.increment();
 
-      SessionStore store = FluxUtil.findStore(mActivityRule.getActivity(), SessionStore.class);
+      SessionStore store = FluxUtil.findStore(activityRule.getActivity(), SessionStore.class);
       store.flowable()
             .startWith(store.state())
             .filter(s -> s.status == SessionState.Status.READY)
@@ -47,7 +51,12 @@ public class CameraStartupTest {
             });
    }
 
-
-   //
+   @LargeTest
+   @Repeat(5)
+   public void openCameraManyTimes() {
+      camera_open_under_300ms();
+      activityRule.getActivity().finish();
+      activityRule.launchActivity(null);
+   }
 
 }

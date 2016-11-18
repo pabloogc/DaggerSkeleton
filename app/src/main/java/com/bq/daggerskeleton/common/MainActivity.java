@@ -9,17 +9,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-import com.bq.daggerskeleton.BuildConfig;
-import com.bq.daggerskeleton.R;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.sample.CameraComponent;
-import com.bq.daggerskeleton.sample.CarlPlugin;
 import com.bq.daggerskeleton.sample.app.App;
 import com.bq.daggerskeleton.sample.app.LifeCycleAction;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -57,9 +53,7 @@ public class MainActivity extends AppCompatActivity {
       final long now = System.currentTimeMillis();
 
       cameraComponent = ((App) getApplication()).getAppComponent().cameraComponent(
-            new MainActivityModule(this),
-            new CarlPlugin.CarlPluginModule(CarlPlugin.Variant.VARIANT_1) {
-            });
+            new MainActivityModule(this));
 
       cameraComponent.inject(this);
 

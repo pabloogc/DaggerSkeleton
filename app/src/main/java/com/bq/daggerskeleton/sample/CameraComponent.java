@@ -25,9 +25,7 @@ import dagger.Subcomponent;
 
             PreviewPlugin.PreviewModule.class,
             TakePhotoPlugin.TakePhotoModule.class,
-            BobPlugin.BobModule.class,
 
-            CarlPlugin.CarlPluginModule.class,
             LoggerStore.LoggerModule.class,
       }
 )
