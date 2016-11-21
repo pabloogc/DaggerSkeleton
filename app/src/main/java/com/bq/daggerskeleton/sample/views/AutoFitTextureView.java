@@ -20,7 +20,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.util.AttributeSet;
-import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -46,6 +45,7 @@ public class AutoFitTextureView extends TextureView {
     */
    private OnLayoutChangeListener onLayoutChangeListener = new OnLayoutChangeListener() {
       @Override
+      @SuppressWarnings("CheckStyle")
       public void onLayoutChange(View v, int left, int top, int right,
                                  int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
 
@@ -78,7 +78,7 @@ public class AutoFitTextureView extends TextureView {
    }
 
    //Add layout change listener
-   public void init() {
+   void init() {
       this.addOnLayoutChangeListener(onLayoutChangeListener);
    }
 
@@ -86,8 +86,10 @@ public class AutoFitTextureView extends TextureView {
     * Calculate the new texture sizes depending on the orientation. Right now the camera only works
     * with vertical orientation, so we only need to scale the height.
     *
-    * @param widthMeasureSpec  Horizontal space requirements as imposed by the parent. The requirements are encoded with View.MeasureSpec.
-    * @param heightMeasureSpec Vertical space requirements as imposed by the parent. The requirements are encoded with View.MeasureSpec.
+    * @param widthMeasureSpec  Horizontal space requirements as imposed by the parent.
+    *                          The requirements are encoded with View.MeasureSpec.
+    * @param heightMeasureSpec Vertical space requirements as imposed by the parent.
+    *                          The requirements are encoded with View.MeasureSpec.
     */
    @Override
    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -141,8 +143,6 @@ public class AutoFitTextureView extends TextureView {
    /**
     * Set the texture aspect ratio. Depending on the switch type (bigger or smaller) we need a
     * different scale to apply in the transformation matrix.
-    *
-    * @param aspectRatio
     */
    public void setAspectRatio(float aspectRatio) {
       //If the ratio is 1:1, we should use the 4:3 ratio to crop the preview
@@ -159,28 +159,5 @@ public class AutoFitTextureView extends TextureView {
          this.aspectRatio = aspectRatio;
          requestLayout();
       }
-   }
-
-   /**
-    * Reset the aspect ratio to 4:3 to avoid deformation when the camera is closed since
-    * we are setting a 4:3 default ratio for the texture buffer.
-    */
-   public void resetAspectRatio() {
-      aspectRatio = RATIO_STANDARD;
-   }
-
-   public Size getPreviewSize() {
-      return new Size(previewWidth, mPreviewHeight);
-   }
-
-   public interface OnTextureViewChangeListener {
-
-      /**
-       * Called when the onLayoutChange is invoked.
-       *
-       * @param previewWidth  New preview width.
-       * @param previewHeight New preview heigth.
-       */
-      void onPreviewSizeChanged(int previewWidth, int previewHeight);
    }
 }

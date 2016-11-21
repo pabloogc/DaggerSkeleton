@@ -6,6 +6,9 @@ import android.support.annotation.Nullable;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Session state controlled by {@link SessionStore}.
+ */
 public class SessionState {
 
    public CameraCaptureSession session = null;

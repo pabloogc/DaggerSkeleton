@@ -23,13 +23,13 @@ public class Dispatcher {
    public static final int LOW_PRIORITY = 75;
    public static final int VERY_LOW_PRIORITY = 100;
 
+   private static final
+   HashMap<Class<? extends Action>, Collection<Subscription<? extends Action>>> DISPATCH_MAP = new HashMap<>();
+   private static final Handler UI_HANDLER = new Handler();
+   private static final long START_TIME = System.currentTimeMillis();
 
-   private static int subscriptionCounter = 0;
-
-   private static final HashMap<Class<? extends Action>, Collection<Subscription<? extends Action>>> dispatchMap = new HashMap<>();
-   private static final Handler uiHandler = new Handler();
-   private static final long startTime = System.currentTimeMillis();
    private static long lastActionTime = System.currentTimeMillis();
+   private static int subscriptionCounter = 0;
 
    private Dispatcher() {
       //No instances
@@ -50,8 +50,8 @@ public class Dispatcher {
    static void dispatchUnsafe(Action action) {
       long now = System.currentTimeMillis();
       long diff = now - lastActionTime;
-      Timber.i("Action - %5d [%3d] -> %s", now - startTime, (diff > 999 ? 999 : diff), action);
-      Collection<Subscription<? extends Action>> subscriptions = dispatchMap.get(action.getClass());
+      Timber.i("Action - %5d [%3d] -> %s", now - START_TIME, (diff > 999 ? 999 : diff), action);
+      Collection<Subscription<? extends Action>> subscriptions = DISPATCH_MAP.get(action.getClass());
       if (subscriptions != null) {
          for (Subscription<? extends Action> subscription : subscriptions) {
             try {
@@ -69,7 +69,7 @@ public class Dispatcher {
     * Same as {@link #dispatch(Action)}, but the action is posted on Ui thread.
     */
    public static void dispatchOnUi(Action action) {
-      uiHandler.post(() -> dispatch(action));
+      UI_HANDLER.post(() -> dispatch(action));
    }
 
    /**
@@ -115,13 +115,13 @@ public class Dispatcher {
     * Callback subscription without Ui check.
     */
    static <T extends Action> void subscribeUnsafe(int priority, Class<T> actionType, Consumer<T> consumer) {
-      Collection<Subscription<? extends Action>> subscriptions = dispatchMap.get(actionType);
+      Collection<Subscription<? extends Action>> subscriptions = DISPATCH_MAP.get(actionType);
       if (subscriptions == null) {
          subscriptions = new TreeSet<>((a, b) -> {
             int p = Integer.compare(a.priority, b.priority);
             return p != 0 ? p : Integer.compare(a.order, b.order);
          });
-         dispatchMap.put(actionType, subscriptions);
+         DISPATCH_MAP.put(actionType, subscriptions);
       }
       subscriptions.add(new Subscription<>(subscriptionCounter, priority, consumer));
       subscriptionCounter++;
@@ -129,7 +129,7 @@ public class Dispatcher {
 
    @TestOnly
    static void clearSubscriptions() {
-      dispatchMap.clear();
+      DISPATCH_MAP.clear();
    }
 
    private static void ensureUiThread() {

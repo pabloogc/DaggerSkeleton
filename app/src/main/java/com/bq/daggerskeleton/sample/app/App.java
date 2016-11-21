@@ -4,19 +4,19 @@ import android.app.Application;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import com.bq.daggerskeleton.BuildConfig;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.InitAction;
 import com.bq.daggerskeleton.flux.Store;
 
 import java.util.ArrayList;
 
-import javax.inject.Named;
-
 import dagger.Module;
 import dagger.Provides;
 import timber.log.Timber;
 
+/**
+ * Application instance responsible for loading all Stores and sending {@link InitAction}.
+ */
 public class App extends Application {
 
    private AppComponent appComponent;

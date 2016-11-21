@@ -47,7 +47,7 @@ public class TakePhotoPlugin extends SimplePlugin {
    }
 
    @Module
-   public static abstract class TakePhotoModule {
+   public abstract static class TakePhotoModule {
       @Provides @PluginScope @IntoMap @ClassKey(TakePhotoPlugin.class)
       static Plugin providePhotoPlugin(TakePhotoPlugin plugin) {
          return plugin;

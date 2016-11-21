@@ -15,6 +15,9 @@ import java.util.Map;
 
 import dagger.Subcomponent;
 
+/**
+ * Default camera component.
+ */
 @Subcomponent(
       modules = {
             MainActivity.MainActivityModule.class,
@@ -30,8 +33,16 @@ import dagger.Subcomponent;
       }
 )
 @PluginScope
+@SuppressWarnings("Checkstyle")
 public interface CameraComponent {
+   /**
+    * Loaded plugins, indexed by type.
+    */
    Map<Class<?>, Plugin> pluginMap();
 
+   /**
+    * Inject the only activity. We actually don't need this, since the plugin map is the
+    * only dependency.
+    */
    void inject(MainActivity activity);
 }

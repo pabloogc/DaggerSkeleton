@@ -2,55 +2,47 @@ package com.bq.daggerskeleton.sample.hardware;
 
 import android.content.Context;
 import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CaptureRequest;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.util.Size;
 import android.view.Surface;
 
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.Store;
 import com.bq.daggerskeleton.sample.app.App;
 import com.bq.daggerskeleton.sample.app.AppScope;
-import com.bq.daggerskeleton.sample.hardware.session.SessionChangedAction;
-import com.bq.daggerskeleton.sample.hardware.session.SessionState;
 import com.bq.daggerskeleton.sample.preview.PreviewSurfaceBufferCalculatedAction;
 import com.bq.daggerskeleton.sample.preview.PreviewSurfaceDestroyedAction;
 import com.bq.daggerskeleton.sample.preview.PreviewSurfaceReadyAction;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
-import dagger.multibindings.IntoSet;
 import timber.log.Timber;
 
 
+/**
+ * Store that controls {@link CameraDevice} lifecycle.
+ */
 @AppScope
 public class CameraStore extends Store<CameraState> {
 
-   private final App app;
-   private final CameraManager cameraManager;
-   private final Handler backgroundHandler;
-
-   private final Semaphore cameraLock = new Semaphore(1);
    private static final int CAMERA_LOCK_TIMEOUT = 3000; //3s
 
-   @Override protected CameraState initialState() {
-      return new CameraState();
-   }
+   private final App app;
+   private final CameraManager cameraManager;
+
+   private final Handler backgroundHandler;
+   private final Semaphore cameraLock = new Semaphore(1);
 
    @Inject CameraStore(App app, Handler backgroundHandler) {
       this.app = app;
@@ -96,6 +88,10 @@ public class CameraStore extends Store<CameraState> {
          newState.cameraDevice = a.camera;
          setState(newState);
       });
+   }
+
+   @Override protected CameraState initialState() {
+      return new CameraState();
    }
 
    private CameraState openCamera(CameraState state) {

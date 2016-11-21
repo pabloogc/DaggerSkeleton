@@ -107,9 +107,12 @@ public class MainActivity extends AppCompatActivity {
       }
 
       //Sort by priority
-      Collections.sort(pluginList, (o1, o2) -> Integer.compare(o1.getProperties().lifecyclePriority, o2.getProperties().lifecyclePriority));
-      Collections.sort(componentBackList, (o1, o2) -> Integer.compare(o1.getProperties().backPriority, o2.getProperties().backPriority));
-      Collections.sort(componentTouchList, (o1, o2) -> Integer.compare(o1.getProperties().touchPriority, o2.getProperties().touchPriority));
+      Collections.sort(pluginList, (o1, o2)
+            -> Integer.compare(o1.getProperties().lifecyclePriority, o2.getProperties().lifecyclePriority));
+      Collections.sort(componentBackList, (o1, o2)
+            -> Integer.compare(o1.getProperties().backPriority, o2.getProperties().backPriority));
+      Collections.sort(componentTouchList, (o1, o2)
+            -> Integer.compare(o1.getProperties().touchPriority, o2.getProperties().touchPriority));
    }
 
    // Life-Cycle

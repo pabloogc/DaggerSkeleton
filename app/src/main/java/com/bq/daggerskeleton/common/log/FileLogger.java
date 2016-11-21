@@ -3,13 +3,10 @@ package com.bq.daggerskeleton.common.log;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pools;
-import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,6 +27,9 @@ import static android.util.Log.ERROR;
 import static android.util.Log.INFO;
 import static android.util.Log.WARN;
 
+/**
+ * Logger that writes everything reported to {@link Timber} to a file.
+ */
 public final class FileLogger {
 
    private static final DateFormat LOG_FILE_DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS", Locale.US);
@@ -59,6 +59,9 @@ public final class FileLogger {
       return file;
    }
 
+   /**
+    * Flush the file, this call is required before application dies or the file will be empty.
+    */
    public void flush() {
       if (writer != null) {
          try {
@@ -87,6 +90,9 @@ public final class FileLogger {
       closeSilently();
    }
 
+   /**
+    * Log a line to the file. This method does not block.
+    */
    public void log(int priority, String tag, String message, Throwable t) {
       if (t != null) {
          message = getStackTraceString(t);
@@ -94,6 +100,10 @@ public final class FileLogger {
       enqueueLog(priority, tag, message);
    }
 
+
+   /**
+    * Close the file and exit. This method does not block.
+    */
    public void exit() {
       this.backgroundThread.interrupt();
    }
@@ -136,6 +146,9 @@ public final class FileLogger {
       return sw.toString();
    }
 
+   /**
+    * Utility method to convert a file to a string.
+    */
    public static String fileToString(File file) {
       try {
          BufferedReader reader;

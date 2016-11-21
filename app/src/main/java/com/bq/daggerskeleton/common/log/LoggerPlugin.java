@@ -27,9 +27,9 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
-import static android.util.Log.d;
-import static android.util.Log.e;
-
+/**
+ * Logger that scans to plugins and subscribes to any observable marked with {@link AutoLog}.
+ */
 @PluginScope
 public final class LoggerPlugin extends SimplePlugin {
 
@@ -104,7 +104,7 @@ public final class LoggerPlugin extends SimplePlugin {
    }
 
    @Module
-   public static abstract class LoggerPluginModule {
+   public abstract static class LoggerPluginModule {
       @Provides @PluginScope @IntoMap @ClassKey(LoggerPlugin.class)
       static Plugin provideLoggerPlugin(LoggerPlugin plugin) {
          return plugin;

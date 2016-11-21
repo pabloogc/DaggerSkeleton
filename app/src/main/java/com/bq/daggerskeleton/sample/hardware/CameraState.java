@@ -1,18 +1,18 @@
 package com.bq.daggerskeleton.sample.hardware;
 
 import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.support.annotation.NonNull;
 import android.util.Size;
 import android.view.Surface;
 
-import com.bq.daggerskeleton.sample.hardware.session.SessionState;
-
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * CameraDevice state wrapper.
+ */
 public class CameraState {
 
    public boolean canOpenCamera = false;
@@ -26,9 +26,6 @@ public class CameraState {
 
    public CameraDevice cameraDevice;
 
-   @NonNull
-   public SessionState sessionState = new SessionState(); //This is a good candidate for another store
-
    public CameraState() {
    }
 
@@ -41,7 +38,6 @@ public class CameraState {
       this.previewSurface = other.previewSurface;
       this.previewSize = other.previewSize;
       this.cameraDevice = other.cameraDevice;
-      this.sessionState = new SessionState(other.sessionState); //Deep copy
    }
 
    @Override public String toString() {
@@ -52,7 +48,6 @@ public class CameraState {
             ", previewTexture=" + previewTexture +
             ", previewSize=" + previewSize +
             ", cameraDevice=" + cameraDevice +
-            ", session=" + sessionState +
             ", previewSurface=" + previewSurface +
             '}';
    }

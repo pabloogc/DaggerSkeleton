@@ -5,10 +5,15 @@ import android.support.annotation.Nullable;
 
 import com.bq.daggerskeleton.common.log.LoggerPlugin;
 
-import io.reactivex.Emitter;
 import io.reactivex.Flowable;
 import io.reactivex.processors.PublishProcessor;
 
+/**
+ * Generic store that exposes its state as a {@link Flowable} and emits change events
+ * when {@link #setState(Object)} is called.
+ *
+ * @param <S> The state type.
+ */
 public abstract class Store<S> {
 
    @Nullable
@@ -19,13 +24,21 @@ public abstract class Store<S> {
 
    protected abstract S initialState();
 
+   /**
+    * Observable state.
+    */
    public Flowable<S> flowable() {
       return processor;
    }
 
+   /**
+    * Current store state. If state is <code>null</code> {@link #initialState()} is called.
+    */
    @NonNull
    public final S state() {
-      if (state == null) state = initialState();
+      if (state == null) {
+         setState(initialState());
+      }
       return state;
    }
 

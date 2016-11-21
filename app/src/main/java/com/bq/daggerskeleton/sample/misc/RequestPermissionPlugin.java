@@ -11,7 +11,6 @@ import com.bq.daggerskeleton.common.PluginScope;
 import com.bq.daggerskeleton.common.SimplePlugin;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.sample.hardware.CameraPermissionChanged;
-import com.tbruyelle.rxpermissions2.Permission;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import javax.inject.Inject;

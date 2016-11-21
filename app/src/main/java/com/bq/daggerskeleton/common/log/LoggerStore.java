@@ -9,7 +9,6 @@ import com.bq.daggerskeleton.sample.app.AppScope;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
@@ -17,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -27,7 +25,6 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
-import dagger.multibindings.IntoSet;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
@@ -50,10 +47,6 @@ public class LoggerStore extends Store<LoggerState> {
 
    private final App app;
 
-   @Override protected LoggerState initialState() {
-      return new LoggerState(null);
-   }
-
    @Inject LoggerStore(App app, Lazy<Map<Class<?>, Store<?>>> stores) {
       this.app = app;
       Timber.plant(new FileLoggerTree());
@@ -70,6 +63,10 @@ public class LoggerStore extends Store<LoggerState> {
                   subscribeToObservableUnsafe(store.flowable(), store.getClass().getSimpleName(), "State");
                }
             });
+   }
+
+   @Override protected LoggerState initialState() {
+      return new LoggerState(null);
    }
 
    private Completable createLogFile() {
@@ -114,8 +111,8 @@ public class LoggerStore extends Store<LoggerState> {
                if (lastModified > maxAge) {
                   FileLogger fileLogger = state().fileLogger;
                   File logFile = fileLogger != null ? fileLogger.getFile() : null;
-                  boolean isCurrentLogFile = logFile != null &&
-                        file.getAbsolutePath().equals(logFile.getAbsolutePath());
+                  boolean isCurrentLogFile = logFile != null
+                        && file.getAbsolutePath().equals(logFile.getAbsolutePath());
                   if (!isCurrentLogFile && file.delete()) deleted++;
                }
             }
@@ -126,7 +123,7 @@ public class LoggerStore extends Store<LoggerState> {
    }
 
    @SuppressWarnings("unchecked")
-   public static Disposable subscribeToObservableUnsafe(Object observable, String tag, String linePrefix) {
+   static Disposable subscribeToObservableUnsafe(Object observable, String tag, String linePrefix) {
 
       Consumer consumer = value -> Timber.tag(tag).i("%s <- %s", linePrefix, value);
       Consumer errorConsumer = value -> Timber.tag(tag).e("%s <- %s", linePrefix, value);
@@ -170,7 +167,7 @@ public class LoggerStore extends Store<LoggerState> {
    }
 
    @Module
-   public static abstract class LoggerModule {
+   public abstract static class LoggerModule {
       @Provides @AppScope @IntoMap @ClassKey(LoggerStore.class)
       static Store<?> provideLoggerPlugin(LoggerStore store) {
          return store;

@@ -6,6 +6,12 @@ import android.util.Log;
 
 import timber.log.Timber;
 
+/**
+ * Value wrapper that can be consumed once. Useful for reactive streams that may share an action
+ * that can't have two side effects (back, touch).
+ *
+ * @param <T> The wrapped value.
+ */
 public final class SharedEvent<T> {
 
    private static final boolean DEBUG_MODE = BuildConfig.DEBUG;
@@ -15,6 +21,16 @@ public final class SharedEvent<T> {
    private T event;
    private boolean consumed = false;
 
+   /**
+    * Reset the event, only the owner should call this method to reuse it.
+    */
+   private SharedEvent(boolean includeTrace) {
+      this.includeTrace = includeTrace;
+   }
+
+   /**
+    * Create a new {@link SharedEvent} instance with {@link #DEBUG_MODE} set to {@link BuildConfig#DEBUG}.
+    */
    public static <T> SharedEvent<T> create() {
       return create(DEBUG_MODE);
    }
@@ -24,20 +40,24 @@ public final class SharedEvent<T> {
       return new SharedEvent<>(includeTrace);
    }
 
-   private SharedEvent(boolean includeTrace) {
-      this.includeTrace = includeTrace;
-   }
-
-
+   /**
+    * Reset the event, only the owner should call this method to reuse it.
+    */
    public void reset() {
       reset(null);
    }
 
+   /**
+    * Reset the event, only the owner should call this method to reuse it.
+    */
    public void reset(T event) {
       this.event = event;
       this.consumed = false;
    }
 
+   /**
+    * Take the value and consume the event. Calling this method twice will throw an exception.
+    */
    public T take() {
       if (consumed()) {
          throw new IllegalStateException(
@@ -59,10 +79,16 @@ public final class SharedEvent<T> {
       return event;
    }
 
+   /**
+    * <code>True</code> if {@link #take()} was called.
+    */
    public boolean consumed() {
       return consumed;
    }
 
+   /**
+    * Peek the value without consuming.
+    */
    public T peek() {
       return event;
    }

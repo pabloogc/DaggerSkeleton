@@ -1,13 +1,17 @@
 package com.bq.daggerskeleton.dagger;
 
 
-import android.annotation.SuppressLint;
-
 import java.lang.reflect.Method;
 import java.util.Set;
 
+/**
+ * Dagger utility methods to work with the plugin based architecture.
+ */
 public class DaggerUtil {
 
+   /**
+    * Return the single value (usually an implementation) from the set or throw.
+    */
    public static <T> T getSingleValue(Set<T> implementations) {
       if (implementations.isEmpty())
          throw new IllegalStateException("There are no implementations");
@@ -18,6 +22,10 @@ public class DaggerUtil {
       return implementations.iterator().next();
    }
 
+   /**
+    * Generic field injection to avoid coupling plugins to their component by type
+    * while allowing <code>@Inject</code> fields.
+    */
    public static void doInject(Object target, Object component) {
       try {
          final Method injectMethod = component.getClass().getMethod("inject", target.getClass());

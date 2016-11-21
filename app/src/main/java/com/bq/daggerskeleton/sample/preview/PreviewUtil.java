@@ -33,7 +33,7 @@ public class PreviewUtil {
     * @return The optimal {@code Size}, or an arbitrary one if none were big enough
     */
    public static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
-                                         int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
+                                        int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
 
       // Collect the supported resolutions that are at least as big as the preview Surface
       List<Size> bigEnough = new ArrayList<>();
@@ -42,10 +42,10 @@ public class PreviewUtil {
       int w = aspectRatio.getWidth();
       int h = aspectRatio.getHeight();
       for (Size option : choices) {
-         if (option.getWidth() <= maxWidth && option.getHeight() <= maxHeight &&
-               option.getHeight() == option.getWidth() * h / w) {
-            if (option.getWidth() >= textureViewWidth &&
-                  option.getHeight() >= textureViewHeight) {
+         if (option.getWidth() <= maxWidth && option.getHeight() <= maxHeight
+               && option.getHeight() == option.getWidth() * h / w) {
+            if (option.getWidth() >= textureViewWidth
+                  && option.getHeight() >= textureViewHeight) {
                bigEnough.add(option);
             } else {
                notBigEnough.add(option);

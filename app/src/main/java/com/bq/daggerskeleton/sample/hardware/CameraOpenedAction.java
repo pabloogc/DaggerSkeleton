@@ -4,6 +4,10 @@ import android.hardware.camera2.CameraDevice;
 
 import com.bq.daggerskeleton.flux.Action;
 
+/**
+ * Camera opened, {@link CameraDevice} holds the reference. ]
+ * Handled by {@link CameraStore}.
+ */
 public class CameraOpenedAction implements Action {
    public final CameraDevice camera;
 
