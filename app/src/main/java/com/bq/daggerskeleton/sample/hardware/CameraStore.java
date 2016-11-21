@@ -29,8 +29,11 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.ClassKey;
+import dagger.multibindings.IntoMap;
 import dagger.multibindings.IntoSet;
 import timber.log.Timber;
 
@@ -182,7 +185,7 @@ public class CameraStore extends Store<CameraState> {
 
    @Module
    public static class CameraModule {
-      @Provides @AppScope @IntoSet
+      @Provides @AppScope @IntoMap @ClassKey(CameraStore.class)
       static Store<?> provideCameraStoreToSet(CameraStore store) {
          return store;
       }

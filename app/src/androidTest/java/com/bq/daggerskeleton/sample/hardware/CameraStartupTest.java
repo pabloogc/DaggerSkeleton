@@ -42,7 +42,7 @@ public class CameraStartupTest {
             .filter(s -> s.status == SessionState.Status.READY)
             .timeout(300, TimeUnit.MILLISECONDS)
             .take(1)
-            .doOnTerminate(() -> countingRule.decrement())
+            .doOnTerminate(countingRule::decrement)
             .test();
 
       onView(withId(R.id.espresso_hook_view))
@@ -53,7 +53,7 @@ public class CameraStartupTest {
 
    @LargeTest
    @Repeat(5)
-   public void openCameraManyTimes() {
+   public void open_camera_many_times() {
       camera_open_under_300ms();
       activityRule.getActivity().finish();
       activityRule.launchActivity(null);

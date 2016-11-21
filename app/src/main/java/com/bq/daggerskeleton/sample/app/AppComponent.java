@@ -8,6 +8,7 @@ import com.bq.daggerskeleton.sample.hardware.CameraStore;
 import com.bq.daggerskeleton.sample.hardware.session.SessionStore;
 import com.bq.daggerskeleton.sample.rotation.RotationStore;
 
+import java.util.Map;
 import java.util.Set;
 
 import dagger.Component;
@@ -24,7 +25,7 @@ import dagger.Component;
 @AppScope
 public interface AppComponent {
 
-   Set<Store<?>> stores();
+   Map<Class<?>, Store<?>> stores();
 
    CameraComponent cameraComponent(
          MainActivity.MainActivityModule activityModule

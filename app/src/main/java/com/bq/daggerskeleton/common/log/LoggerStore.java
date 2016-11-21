@@ -16,6 +16,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +25,8 @@ import javax.inject.Inject;
 import dagger.Lazy;
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.ClassKey;
+import dagger.multibindings.IntoMap;
 import dagger.multibindings.IntoSet;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -51,7 +54,7 @@ public class LoggerStore extends Store<LoggerState> {
       return new LoggerState(null);
    }
 
-   @Inject LoggerStore(App app, Lazy<Set<Store<?>>> stores) {
+   @Inject LoggerStore(App app, Lazy<Map<Class<?>, Store<?>>> stores) {
       this.app = app;
       Timber.plant(new FileLoggerTree());
 
@@ -63,7 +66,7 @@ public class LoggerStore extends Store<LoggerState> {
       Dispatcher.subscribe(InitAction.class)
             .observeOn(Schedulers.io())
             .subscribe(a -> {
-               for (Store<?> store : stores.get()) {
+               for (Store<?> store : stores.get().values()) {
                   subscribeToObservableUnsafe(store.flowable(), store.getClass().getSimpleName(), "State");
                }
             });
@@ -168,7 +171,7 @@ public class LoggerStore extends Store<LoggerState> {
 
    @Module
    public static abstract class LoggerModule {
-      @Provides @AppScope @IntoSet
+      @Provides @AppScope @IntoMap @ClassKey(LoggerStore.class)
       static Store<?> provideLoggerPlugin(LoggerStore store) {
          return store;
       }

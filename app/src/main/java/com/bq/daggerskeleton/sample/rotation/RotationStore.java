@@ -15,6 +15,8 @@ import javax.inject.Inject;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.ClassKey;
+import dagger.multibindings.IntoMap;
 import dagger.multibindings.IntoSet;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -152,7 +154,7 @@ public class RotationStore extends Store<RotationState> {
    @Module
    public static class RotationModule {
 
-      @Provides @AppScope @IntoSet
+      @Provides @AppScope @IntoMap @ClassKey(RotationStore.class)
       static Store<?> provideRotationStoreToSet(RotationStore store) {
          return store;
       }

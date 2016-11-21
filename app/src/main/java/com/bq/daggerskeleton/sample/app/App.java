@@ -33,7 +33,7 @@ public class App extends Application {
 
       long now = System.currentTimeMillis();
       appComponent = DaggerAppComponent.builder().appModule(new AppModule(this)).build();
-      ArrayList<Store<?>> stores = new ArrayList<>(appComponent.stores());
+      ArrayList<Store<?>> stores = new ArrayList<>(appComponent.stores().values());
 
       Dispatcher.dispatch(new InitAction());
 

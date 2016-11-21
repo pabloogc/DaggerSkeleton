@@ -21,6 +21,8 @@ import javax.inject.Inject;
 
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.ClassKey;
+import dagger.multibindings.IntoMap;
 import dagger.multibindings.IntoSet;
 import timber.log.Timber;
 
@@ -145,7 +147,7 @@ public class SessionStore extends Store<SessionState> {
 
    @Module
    public static class SessionModule {
-      @Provides @AppScope @IntoSet
+      @Provides @AppScope @IntoMap @ClassKey(SessionStore.class)
       static Store<?> provideSessionStoreToSet(SessionStore store) {
          return store;
       }
