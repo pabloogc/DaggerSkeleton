@@ -19,7 +19,7 @@ public class SessionState {
     * Surface providers are responsible for handling the surface lifecycle, this is just a hook
     * for any future mode (for now, ImageReader surface and MediaRecorder surface).
     */
-   @NotNull public WeakReference<Surface> targetSurface = new WeakReference<>(null);
+   @NotNull public WeakReference<Surface> outputSurface = new WeakReference<>(null);
    public CameraCaptureSession session = null;
    @NotNull public Status status = Status.NO_SESSION;
    @Nullable public Throwable error = null;
@@ -29,7 +29,7 @@ public class SessionState {
 
    public SessionState(SessionState other) {
       this.outputMode = other.outputMode;
-      this.targetSurface = other.targetSurface;
+      this.outputSurface = other.outputSurface;
       this.session = other.session;
       this.status = other.status;
       this.error = other.error;
@@ -38,7 +38,7 @@ public class SessionState {
    @Override public String toString() {
       return "SessionState{" +
             "outputMode=" + outputMode +
-            ", targetSurface=" + targetSurface +
+            ", outputSurface=" + outputSurface.get() +
             ", session=" + session +
             ", status=" + status +
             ", error=" + error +

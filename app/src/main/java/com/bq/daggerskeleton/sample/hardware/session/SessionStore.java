@@ -58,7 +58,7 @@ public class SessionStore extends Store<SessionState> {
 
       Dispatcher.subscribe(OutputSurfaceReadyAction.class, a -> {
          SessionState newState = new SessionState(state());
-         newState.targetSurface = new WeakReference<>(a.outputSurface);
+         newState.outputSurface = new WeakReference<>(a.outputSurface);
          setState(newState);
       });
 
@@ -79,15 +79,12 @@ public class SessionStore extends Store<SessionState> {
       //Preconditions
       CameraState cameraState = cameraStore.state();
       PreviewState previewState = previewStore.state();
-      Surface outputSurface = state().targetSurface.get();
+      Surface outputSurface = state().outputSurface.get();
 
-      if (state().status.isReadyOrOpening()
-            || outputSurface == null
-            || cameraState.cameraDevice == null
-            || previewState.previewTexture == null
-            || previewState.previewSize == null) {
-         return;
-      }
+      if (state().status.isReadyOrOpening()) return;
+      if (cameraState.cameraDevice == null) return;
+      if (previewState.previewTexture == null) return;
+      if (previewState.previewSize == null) return;
 
       try {
          CaptureRequest.Builder request;
@@ -108,37 +105,35 @@ public class SessionStore extends Store<SessionState> {
          previewState.previewTexture.setDefaultBufferSize(previewSize.getWidth(), previewSize.getHeight());
          request.addTarget(previewState.previewSurface);
 
-         cameraState.cameraDevice
-               .createCaptureSession(
-                     Arrays.asList(previewState.previewSurface, outputSurface),
-                     new CameraCaptureSession.StateCallback() {
-                        @Override
-                        public void onConfigured(@NonNull CameraCaptureSession session) {
-                           try {
-                              session.getInputSurface();
-                              //This call is irrelevant,
-                              //however session might have closed and this will throw an IllegalStateException.
-                              //This happens if another camera app (or this one in another PID) takes control
-                              //of the camera while its opening
-                           } catch (IllegalStateException e) {
-                              Timber.e("Another process took control of the camera while creating the session, aborting!");
-                              Dispatcher.dispatchOnUi(new SessionChangedAction(null, SessionState.Status.ERROR, e));
-                              return;
-                           }
-                           Dispatcher.dispatchOnUi(new SessionChangedAction(session, SessionState.Status.READY));
-                           try {
-                              session.setRepeatingRequest(request.build(), null, backgroundHandler);
-                           } catch (CameraAccessException e) {
-                              Timber.e(e);
-                              Dispatcher.dispatchOnUi(new SessionChangedAction(null, SessionState.Status.ERROR, e));
-                           }
-                        }
+         cameraState.cameraDevice.createCaptureSession(Arrays.asList(previewState.previewSurface, outputSurface),
+               new CameraCaptureSession.StateCallback() {
+                  @Override
+                  public void onConfigured(@NonNull CameraCaptureSession session) {
+                     try {
+                        session.getInputSurface();
+                        //This call is irrelevant,
+                        //however session might have closed and this will throw an IllegalStateException.
+                        //This happens if another camera app (or this one in another PID) takes control
+                        //of the camera while its opening
+                     } catch (IllegalStateException e) {
+                        Timber.e("Another process took control of the camera while creating the session, aborting!");
+                        Dispatcher.dispatchOnUi(new SessionChangedAction(null, SessionState.Status.ERROR, e));
+                        return;
+                     }
+                     Dispatcher.dispatchOnUi(new SessionChangedAction(session, SessionState.Status.READY));
+                     try {
+                        session.setRepeatingRequest(request.build(), null, backgroundHandler);
+                     } catch (CameraAccessException e) {
+                        Timber.e(e);
+                        Dispatcher.dispatchOnUi(new SessionChangedAction(null, SessionState.Status.ERROR, e));
+                     }
+                  }
 
-                        @Override
-                        public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                           Dispatcher.dispatchOnUi(new SessionChangedAction(session, SessionState.Status.ERROR));
-                        }
-                     }, backgroundHandler);
+                  @Override
+                  public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                     Dispatcher.dispatchOnUi(new SessionChangedAction(session, SessionState.Status.ERROR));
+                  }
+               }, backgroundHandler);
 
          //Now we are opening
          SessionState newState = new SessionState(state());
@@ -162,7 +157,7 @@ public class SessionStore extends Store<SessionState> {
             Timber.e(e, "Error trying to release the session");
          }
          newState.session = null;
-         newState.targetSurface = new WeakReference<>(null);
+         newState.outputSurface = new WeakReference<>(null);
          newState.error = null;
          newState.status = SessionState.Status.NO_SESSION;
       }

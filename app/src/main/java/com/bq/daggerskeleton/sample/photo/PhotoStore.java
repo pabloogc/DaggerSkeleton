@@ -71,38 +71,6 @@ public class PhotoStore extends Store<PhotoState> {
             setState(releaseImageReader());
          }
       });
-
-      /*
-      Dispatcher.subscribe(TakePictureAction.class, action -> {
-         if (isInPhotoMode()) {
-            PhotoState newState = new PhotoState(state());
-            newState.isTakingPhoto = true;
-
-            setState(newState);
-
-            takePicture();
-         }
-      });
-
-      Dispatcher.subscribe(MediaSavedAction.class, action -> {
-         if (isInPhotoMode()) {
-            PhotoState newState = new PhotoState(state());
-            newState.isTakingPhoto = false;
-
-            setState(newState);
-         }
-      });
-
-      Dispatcher.subscribe(SetModeAction.class, new Consumer<SetModeAction>() {
-         @Override
-         public void accept(SetModeAction action) throws Exception {
-            // If mode is not photo, then release all resources
-            if (!CameraMode.PHOTO.equals(action.mode)) {
-               setState(releaseImageReader());
-            }
-         }
-      });
-      */
    }
 
    @Override
@@ -128,7 +96,7 @@ public class PhotoStore extends Store<PhotoState> {
             2);
 
       imageReader.setOnImageAvailableListener(reader -> {
-         try (final Image image = reader.acquireLatestImage()) {
+         try (Image image = reader.acquireLatestImage()) {
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
@@ -188,7 +156,7 @@ public class PhotoStore extends Store<PhotoState> {
                cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
 
          // TODO: 21/11/16 Move configuration params to another store
-         // Autofocus and Autoexposure
+         // AutoFocus and AutoExposure
          captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
          captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_ANTIBANDING_MODE_AUTO);
          // Get rotation from state
@@ -209,6 +177,7 @@ public class PhotoStore extends Store<PhotoState> {
 
    private PhotoState releaseImageReader() {
       if (state().imageReader != null) {
+         state().imageReader.getSurface().release();
          state().imageReader.close();
       }
       return initialState();
