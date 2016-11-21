@@ -90,10 +90,6 @@ public class CameraStore extends Store<CameraState> {
       });
    }
 
-   @Override protected CameraState initialState() {
-      return new CameraState();
-   }
-
    private CameraState openCamera(CameraState state) {
       if (!state().canOpenCamera) return state;
       CameraState newState = new CameraState(state);

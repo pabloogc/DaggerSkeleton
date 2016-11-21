@@ -65,10 +65,6 @@ public class LoggerStore extends Store<LoggerState> {
             });
    }
 
-   @Override protected LoggerState initialState() {
-      return new LoggerState(null);
-   }
-
    private Completable createLogFile() {
       return Completable.create(s -> {
          File cacheDir = app.getCacheDir();

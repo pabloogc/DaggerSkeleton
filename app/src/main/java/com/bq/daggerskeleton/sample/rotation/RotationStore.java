@@ -28,10 +28,6 @@ public class RotationStore extends Store<RotationState> {
 
    private final OrientationHandler orientationEventListener;
 
-   @Override protected RotationState initialState() {
-      return new RotationState();
-   }
-
    @Inject RotationStore(App app) {
 
       orientationEventListener = new OrientationHandler(app);

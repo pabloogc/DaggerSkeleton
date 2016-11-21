@@ -5,6 +5,10 @@ import android.support.annotation.Nullable;
 public class LoggerState {
    @Nullable public final FileLogger fileLogger;
 
+   public LoggerState() {
+      this(null);
+   }
+
    public LoggerState(@Nullable FileLogger fileLogger) {
       this.fileLogger = fileLogger;
    }

@@ -23,18 +23,16 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
-import dagger.multibindings.IntoSet;
 import timber.log.Timber;
 
+/**
+ * Session opening and closing logic.
+ */
 @AppScope
 public class SessionStore extends Store<SessionState> {
 
    private final CameraStore cameraStore;
    private final Handler backgroundHandler;
-
-   @Override protected SessionState initialState() {
-      return new SessionState();
-   }
 
    @Inject SessionStore(CameraStore cameraStore, Handler backgroundHandler) {
       this.cameraStore = cameraStore;
@@ -58,13 +56,13 @@ public class SessionStore extends Store<SessionState> {
 
    /**
     * Start the session if preconditions are met. For this example, the preview surface is ready and
-    * the camera opened
+    * the camera opened.
     */
    private void tryToStartSession() {
       //Preconditions
       CameraState cameraState = cameraStore.state();
 
-      if (cameraState.sessionState.status.isReadyOrOpening()
+      if (state().status.isReadyOrOpening()
             || cameraState.previewTexture == null
             || cameraState.cameraDevice == null
             || cameraState.previewSize == null) {
@@ -79,7 +77,8 @@ public class SessionStore extends Store<SessionState> {
             // STOPSHIP: 16/11/2016
             // TODO: 16/11/2016 Move to an error status and notify user properly
             Timber.e(e);
-            throw new IllegalStateException("Failed to create session, there is a race condition between 2 camera apps");
+            throw new IllegalStateException("Failed to create session, "
+                  + "there is a race condition between 2 camera apps");
          }
 
          request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);

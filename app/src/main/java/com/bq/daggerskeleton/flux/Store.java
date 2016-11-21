@@ -5,6 +5,9 @@ import android.support.annotation.Nullable;
 
 import com.bq.daggerskeleton.common.log.LoggerPlugin;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.ParameterizedType;
+
 import io.reactivex.Flowable;
 import io.reactivex.processors.PublishProcessor;
 
@@ -22,7 +25,18 @@ public abstract class Store<S> {
    @LoggerPlugin.AutoLog
    private final PublishProcessor<S> processor = PublishProcessor.create();
 
-   protected abstract S initialState();
+   @SuppressWarnings("unchecked")
+   protected S initialState() {
+      try {
+         Class<S> stateType = (Class<S>) ((ParameterizedType) getClass()
+               .getGenericSuperclass()).getActualTypeArguments()[0];
+         Constructor<S> constructor = stateType.getDeclaredConstructor();
+         constructor.setAccessible(true);
+         return constructor.newInstance();
+      } catch (Exception e) {
+         throw new RuntimeException("Missing default no-args constructor for the state", e);
+      }
+   }
 
    /**
     * Observable state.
@@ -43,7 +57,7 @@ public abstract class Store<S> {
    }
 
    protected final void setState(@NonNull S newState) {
-      if (newState.equals(state())) return;
+      if (newState.equals(state)) return;
       state = newState;
       processor.onNext(state);
    }
