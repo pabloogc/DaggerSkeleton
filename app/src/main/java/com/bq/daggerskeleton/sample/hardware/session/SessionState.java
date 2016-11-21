@@ -24,6 +24,14 @@ public class SessionState {
       this.error = other.error;
    }
 
+   @Override public String toString() {
+      return "SessionState{" +
+            "session=" + session +
+            ", status=" + status +
+            ", error=" + error +
+            '}';
+   }
+
    public enum Status {
       NO_SESSION, READY, OPENING, ERROR;
 
@@ -34,13 +42,5 @@ public class SessionState {
       public boolean isReadyOrOpening() {
          return this == READY || this == OPENING;
       }
-   }
-
-   @Override public String toString() {
-      return "SessionState{" +
-            "session=" + session +
-            ", status=" + status +
-            ", error=" + error +
-            '}';
    }
 }

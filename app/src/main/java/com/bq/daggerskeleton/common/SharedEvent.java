@@ -2,7 +2,6 @@ package com.bq.daggerskeleton.common;
 
 
 import android.support.compat.BuildConfig;
-import android.util.Log;
 
 import timber.log.Timber;
 

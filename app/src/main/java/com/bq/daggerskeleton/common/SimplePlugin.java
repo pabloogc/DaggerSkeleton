@@ -1,4 +1,3 @@
-
 package com.bq.daggerskeleton.common;
 
 import android.content.res.Configuration;

@@ -55,6 +55,39 @@ public final class FileLogger {
       this.writer = writer;
    }
 
+   /**
+    * Transform a stacktrace into a plain string.
+    */
+   private static String getStackTraceString(Throwable t) {
+      // Don't replace this with Log.getStackTraceString() - it hides
+      // UnknownHostException, which is not what we want.
+      StringWriter sw = new StringWriter(256);
+      PrintWriter pw = new PrintWriter(sw, false);
+      t.printStackTrace(pw);
+      pw.flush();
+      return sw.toString();
+   }
+
+   /**
+    * Utility method to convert a file to a string.
+    */
+   public static String fileToString(File file) {
+      try {
+         BufferedReader reader;
+         reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+         StringBuilder sb = new StringBuilder();
+         String line;
+         while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+         }
+         reader.close();
+         return sb.toString();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      return "Error Reading File";
+   }
+
    @NonNull public File getFile() {
       return file;
    }
@@ -100,7 +133,6 @@ public final class FileLogger {
       enqueueLog(priority, tag, message);
    }
 
-
    /**
     * Close the file and exit. This method does not block.
     */
@@ -133,37 +165,15 @@ public final class FileLogger {
       }
    }
 
-   /**
-    * Transform a stacktrace into a plain string.
-    */
-   private static String getStackTraceString(Throwable t) {
-      // Don't replace this with Log.getStackTraceString() - it hides
-      // UnknownHostException, which is not what we want.
-      StringWriter sw = new StringWriter(256);
-      PrintWriter pw = new PrintWriter(sw, false);
-      t.printStackTrace(pw);
-      pw.flush();
-      return sw.toString();
+   @Override public String toString() {
+      return "FileLogger{" +
+            "file=" + file.getAbsolutePath() +
+            '}';
    }
 
-   /**
-    * Utility method to convert a file to a string.
-    */
-   public static String fileToString(File file) {
-      try {
-         BufferedReader reader;
-         reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-         StringBuilder sb = new StringBuilder();
-         String line;
-         while ((line = reader.readLine()) != null) {
-            sb.append(line).append("\n");
-         }
-         reader.close();
-         return sb.toString();
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
-      return "Error Reading File";
+   @Override protected void finalize() throws Throwable {
+      super.finalize();
+      flush();
    }
 
    private static final class LogLine {
@@ -201,16 +211,5 @@ public final class FileLogger {
 
          return String.format(Locale.US, "[%s] %s/%s: %s\n", LOG_FILE_DATE_FORMAT.format(date), levelString, tag, log);
       }
-   }
-
-   @Override public String toString() {
-      return "FileLogger{" +
-            "file=" + file.getAbsolutePath() +
-            '}';
-   }
-
-   @Override protected void finalize() throws Throwable {
-      super.finalize();
-      flush();
    }
 }

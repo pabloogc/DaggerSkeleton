@@ -65,6 +65,50 @@ public class LoggerStore extends Store<LoggerState> {
             });
    }
 
+   @SuppressWarnings("unchecked")
+   static Disposable subscribeToObservableUnsafe(Object observable, String tag, String linePrefix) {
+
+      Consumer consumer = value -> Timber.tag(tag).i("%s <- %s", linePrefix, value);
+      Consumer errorConsumer = value -> Timber.tag(tag).e("%s <- %s", linePrefix, value);
+
+      Disposable disposable = null;
+      if (observable instanceof Observable) {
+         disposable = ((Observable) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
+      } else if (observable instanceof Flowable) {
+         disposable = ((Flowable) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
+      } else if (observable instanceof Single) {
+         disposable = ((Single) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
+      } else if (observable instanceof Maybe) {
+         disposable = ((Maybe) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
+      }
+
+      return disposable;
+   }
+
+   public static String fileToString(File file) {
+      BufferedReader reader;
+      try {
+         reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+         StringBuilder sb = new StringBuilder();
+         String line;
+         Boolean firstLine = true;
+         while ((line = reader.readLine()) != null) {
+            if (firstLine) {
+               sb.append(line);
+               firstLine = false;
+            } else {
+               sb.append("\n").append(line);
+            }
+         }
+         reader.close();
+         return sb.toString();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+
+      return "Error reading File";
+   }
+
    private Completable createLogFile() {
       return Completable.create(s -> {
          File cacheDir = app.getCacheDir();
@@ -116,50 +160,6 @@ public class LoggerStore extends Store<LoggerState> {
          Timber.v("Deleted %d old log files", deleted);
          e.onComplete();
       });
-   }
-
-   @SuppressWarnings("unchecked")
-   static Disposable subscribeToObservableUnsafe(Object observable, String tag, String linePrefix) {
-
-      Consumer consumer = value -> Timber.tag(tag).i("%s <- %s", linePrefix, value);
-      Consumer errorConsumer = value -> Timber.tag(tag).e("%s <- %s", linePrefix, value);
-
-      Disposable disposable = null;
-      if (observable instanceof Observable) {
-         disposable = ((Observable) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
-      } else if (observable instanceof Flowable) {
-         disposable = ((Flowable) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
-      } else if (observable instanceof Single) {
-         disposable = ((Single) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
-      } else if (observable instanceof Maybe) {
-         disposable = ((Maybe) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
-      }
-
-      return disposable;
-   }
-
-   public static String fileToString(File file) {
-      BufferedReader reader;
-      try {
-         reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-         StringBuilder sb = new StringBuilder();
-         String line;
-         Boolean firstLine = true;
-         while ((line = reader.readLine()) != null) {
-            if (firstLine) {
-               sb.append(line);
-               firstLine = false;
-            } else {
-               sb.append("\n").append(line);
-            }
-         }
-         reader.close();
-         return sb.toString();
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
-
-      return "Error reading File";
    }
 
    @Module

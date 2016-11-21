@@ -19,11 +19,10 @@ import io.reactivex.processors.PublishProcessor;
  */
 public abstract class Store<S> {
 
-   @Nullable
-   private S state;
-
    @LoggerPlugin.AutoLog
    private final PublishProcessor<S> processor = PublishProcessor.create();
+   @Nullable
+   private S state;
 
    @SuppressWarnings("unchecked")
    protected S initialState() {

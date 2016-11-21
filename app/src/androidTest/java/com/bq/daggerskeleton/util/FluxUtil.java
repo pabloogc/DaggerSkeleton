@@ -7,7 +7,6 @@ import com.bq.daggerskeleton.flux.Store;
 import com.bq.daggerskeleton.sample.app.App;
 
 import java.util.Map;
-import java.util.Set;
 
 public class FluxUtil {
    @NonNull

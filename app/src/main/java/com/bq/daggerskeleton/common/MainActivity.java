@@ -36,15 +36,12 @@ public class MainActivity extends AppCompatActivity {
    private final List<Plugin> pluginList = new ArrayList<>();
    private final List<Plugin> componentBackList = new ArrayList<>();
    private final List<Plugin> componentTouchList = new ArrayList<>();
-
+   @Inject Map<Class<?>, Plugin> pluginMap;
    // Reused events
    private SharedEvent<MotionEvent> sharedMotionEvent = SharedEvent.create();
    private SharedEvent<KeyEvent> sharedKeyEvent = SharedEvent.create();
    private SharedEvent<Void> sharedBackEvent = SharedEvent.create();
-
-
    private CameraComponent cameraComponent;
-   @Inject Map<Class<?>, Plugin> pluginMap;
 
    @Override
    protected void onCreate(Bundle savedInstanceState) {

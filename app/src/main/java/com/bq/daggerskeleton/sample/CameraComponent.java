@@ -1,11 +1,11 @@
 package com.bq.daggerskeleton.sample;
 
 
-import com.bq.daggerskeleton.common.log.LoggerPlugin;
-import com.bq.daggerskeleton.common.log.LoggerStore;
 import com.bq.daggerskeleton.common.MainActivity;
 import com.bq.daggerskeleton.common.Plugin;
 import com.bq.daggerskeleton.common.PluginScope;
+import com.bq.daggerskeleton.common.log.LoggerPlugin;
+import com.bq.daggerskeleton.common.log.LoggerStore;
 import com.bq.daggerskeleton.sample.core.RootViewControllerPlugin;
 import com.bq.daggerskeleton.sample.misc.RequestPermissionPlugin;
 import com.bq.daggerskeleton.sample.photo.TakePhotoPlugin;

@@ -3,10 +3,10 @@ package com.bq.daggerskeleton.sample.rotation;
 import android.content.Context;
 import android.view.OrientationEventListener;
 
-import com.bq.daggerskeleton.sample.app.App;
-import com.bq.daggerskeleton.sample.app.AppScope;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.Store;
+import com.bq.daggerskeleton.sample.app.App;
+import com.bq.daggerskeleton.sample.app.AppScope;
 import com.bq.daggerskeleton.sample.app.LifeCycleAction;
 
 import java.util.concurrent.TimeUnit;
@@ -17,7 +17,6 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
-import dagger.multibindings.IntoSet;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;

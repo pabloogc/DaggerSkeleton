@@ -49,8 +49,8 @@ public class PreviewPlugin extends SimplePlugin {
    private final CameraStore cameraStore;
    private final SessionStore sessionStore;
    private final RootViewControllerPlugin rootViewControllerPlugin;
-   private ViewGroup container;
    @BindView(R.id.preview_texture) AutoFitTextureView textureView;
+   private ViewGroup container;
 
    @Inject PreviewPlugin(Activity activity,
                          CameraStore cameraStore,
