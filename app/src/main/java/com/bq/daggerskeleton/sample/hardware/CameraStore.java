@@ -7,15 +7,11 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.view.Surface;
 
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.Store;
 import com.bq.daggerskeleton.sample.app.App;
 import com.bq.daggerskeleton.sample.app.AppScope;
-import com.bq.daggerskeleton.sample.preview.PreviewSurfaceBufferCalculatedAction;
-import com.bq.daggerskeleton.sample.preview.PreviewSurfaceDestroyedAction;
-import com.bq.daggerskeleton.sample.preview.PreviewSurfaceReadyAction;
 
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -61,28 +57,6 @@ public class CameraStore extends Store<CameraState> {
 
       Dispatcher.subscribe(CloseCameraAction.class, a -> setState(closeCamera(state())));
 
-      Dispatcher.subscribe(PreviewSurfaceDestroyedAction.class, a -> {
-         CameraState newState = new CameraState(state());
-         if (newState.previewTexture != null) {
-            //Nothing to do here, surface auto releases, don't call release on it
-            newState.previewTexture = null;
-         }
-         setState(newState);
-      });
-
-      Dispatcher.subscribe(PreviewSurfaceReadyAction.class, a -> {
-         CameraState newState = new CameraState(state());
-         newState.previewTexture = a.surfaceTexture;
-         newState.previewSurface = new Surface(a.surfaceTexture);
-         setState(newState);
-      });
-
-      Dispatcher.subscribe(PreviewSurfaceBufferCalculatedAction.class, a -> {
-         CameraState newState = new CameraState(state());
-         newState.previewSize = a.size;
-         setState(newState);
-      });
-
       Dispatcher.subscribe(CameraOpenedAction.class, a -> {
          CameraState newState = new CameraState(state());
          newState.cameraDevice = a.camera;
@@ -107,16 +81,19 @@ public class CameraStore extends Store<CameraState> {
          try {
             //noinspection MissingPermission
             cameraManager.openCamera(newState.selectedCamera, new CameraDevice.StateCallback() {
-               @Override public void onOpened(@NonNull CameraDevice camera) {
+               @Override
+               public void onOpened(@NonNull CameraDevice camera) {
                   cameraLock.release();
                   Dispatcher.dispatchOnUi(new CameraOpenedAction(camera));
                }
 
-               @Override public void onDisconnected(@NonNull CameraDevice camera) {
+               @Override
+               public void onDisconnected(@NonNull CameraDevice camera) {
                   Timber.d("Camera disconnected: %s", camera.getId());
                }
 
-               @Override public void onError(@NonNull CameraDevice camera, int error) {
+               @Override
+               public void onError(@NonNull CameraDevice camera, int error) {
                   cameraLock.release();
                   Timber.e("Camera error: %d", error);
                }
@@ -164,11 +141,11 @@ public class CameraStore extends Store<CameraState> {
       }
    }
 
-   @NonNull private String selectDefaultCamera(Map<String, CameraCharacteristics> cameras) {
+   @NonNull
+   private String selectDefaultCamera(Map<String, CameraCharacteristics> cameras) {
       for (String cameraId : cameras.keySet()) {
-         CameraCharacteristics characteristics = cameras.get(cameraId);
-         Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-         if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
+         CameraCharacteristics cameraCharacteristics = cameras.get(cameraId);
+         if (!CameraCharacteristicsUtil.isFrontCamera(cameraCharacteristics)) {
             return cameraId;
          }
       }
@@ -178,7 +155,7 @@ public class CameraStore extends Store<CameraState> {
    @Module
    public static class CameraModule {
       @Provides @AppScope @IntoMap @ClassKey(CameraStore.class)
-      static Store<?> provideCameraStoreToSet(CameraStore store) {
+      static Store<?> provideCameraStoreToMap(CameraStore store) {
          return store;
       }
    }

@@ -6,6 +6,8 @@ import com.bq.daggerskeleton.flux.Store;
 import com.bq.daggerskeleton.sample.CameraComponent;
 import com.bq.daggerskeleton.sample.hardware.CameraStore;
 import com.bq.daggerskeleton.sample.hardware.session.SessionStore;
+import com.bq.daggerskeleton.sample.photo.PhotoStore;
+import com.bq.daggerskeleton.sample.preview.PreviewStore;
 import com.bq.daggerskeleton.sample.rotation.RotationStore;
 
 import java.util.Map;
@@ -22,6 +24,8 @@ import dagger.Component;
             LoggerStore.LoggerModule.class,
             CameraStore.CameraModule.class,
             SessionStore.SessionModule.class,
+            PreviewStore.PreviewModule.class,
+            PhotoStore.PhotoModule.class,
       }
 )
 @AppScope
