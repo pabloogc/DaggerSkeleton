@@ -32,11 +32,11 @@ public class MainActivity extends AppCompatActivity {
    private static final String LC_TAG = "LifeCycle";
 
    private static final String ARG_PLUGIN_SAVED_STATES = "pluginStates";
+   // Plugins
+   @Inject Map<Class<?>, Plugin> pluginMap;
    private final List<Plugin> pluginList = new ArrayList<>();
    private final List<Plugin> componentBackList = new ArrayList<>();
    private final List<Plugin> componentTouchList = new ArrayList<>();
-   // Plugins
-   @Inject Map<Class<?>, Plugin> pluginMap;
    // Reused events
    private SharedEvent<MotionEvent> sharedMotionEvent = SharedEvent.create();
    private SharedEvent<KeyEvent> sharedKeyEvent = SharedEvent.create();

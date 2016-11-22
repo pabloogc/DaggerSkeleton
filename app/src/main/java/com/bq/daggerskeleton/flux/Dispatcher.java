@@ -56,7 +56,7 @@ public class Dispatcher {
    static void dispatchUnsafe(Action action) {
       long now = System.currentTimeMillis();
       long diff = now - lastActionTime;
-      Timber.i("Action - %5d [%3d] -> %s", now - START_TIME, (diff > 999 ? 999 : diff), action);
+      Timber.i("Action - %5d [%4d] -> %s", now - START_TIME, (diff > 9999 ? 9999 : diff), action);
       Collection<Subscription<? extends Action>> subscriptions = DISPATCH_MAP.get(action.getClass());
       if (subscriptions != null) {
          for (Subscription<? extends Action> subscription : subscriptions) {

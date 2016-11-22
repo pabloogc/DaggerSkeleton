@@ -12,6 +12,7 @@ import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.Store;
 import com.bq.daggerskeleton.sample.app.App;
 import com.bq.daggerskeleton.sample.app.AppScope;
+import com.bq.daggerskeleton.sample.misc.PermissionsChangedAction;
 
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -45,7 +46,7 @@ public class CameraStore extends Store<CameraState> {
       this.cameraManager = ((CameraManager) app.getSystemService(Context.CAMERA_SERVICE));
       this.backgroundHandler = backgroundHandler;
 
-      Dispatcher.subscribe(CameraPermissionChangedAction.class, permissionChanged -> {
+      Dispatcher.subscribe(PermissionsChangedAction.class, permissionChanged -> {
          CameraState newState = new CameraState(state());
          newState.canOpenCamera = permissionChanged.granted;
          setState(newState);

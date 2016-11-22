@@ -10,6 +10,7 @@ import com.bq.daggerskeleton.common.PluginScope;
 import com.bq.daggerskeleton.common.SimplePlugin;
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.sample.core.RootViewControllerPlugin;
+import com.bq.daggerskeleton.sample.hardware.session.SessionState;
 import com.bq.daggerskeleton.sample.hardware.session.SessionStore;
 
 import javax.inject.Inject;
@@ -18,14 +19,15 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
+import timber.log.Timber;
 
 /**
- * Plugin that takes care of the mediaType shutter button.
+ * Plugin that takes care of the mediaType shutter button for burst mode photos.
  * <p>
- * The plugin will trigger the needed action to take a mediaType when the shutter button is pressed.
+ * The plugin will trigger the needed action to take a mediaType in burst mode when the shutter button is pressed.
  */
 @PluginScope
-public class TakePhotoPlugin extends SimplePlugin implements View.OnClickListener {
+public class TakeBurstPlugin extends SimplePlugin implements View.OnClickListener {
 
    private final Activity activity;
    private final SessionStore sessionStore;
@@ -33,9 +35,14 @@ public class TakePhotoPlugin extends SimplePlugin implements View.OnClickListene
    private final RootViewControllerPlugin rootViewControllerPlugin;
    private ViewGroup container;
    private View shutterButton;
+   private boolean isBursting = false;
 
-   @Inject
-   TakePhotoPlugin(Activity activity, SessionStore sessionStore, PhotoStore photoStore, RootViewControllerPlugin rootViewControllerPlugin) {
+   private long timestamp = System.currentTimeMillis();
+
+   @Inject TakeBurstPlugin(Activity activity,
+                           SessionStore sessionStore,
+                           PhotoStore photoStore,
+                           RootViewControllerPlugin rootViewControllerPlugin) {
       this.activity = activity;
       this.sessionStore = sessionStore;
       this.photoStore = photoStore;
@@ -56,30 +63,34 @@ public class TakePhotoPlugin extends SimplePlugin implements View.OnClickListene
                this.shutterButton.setOnClickListener(this);
             }));
 
-      // Enable button when the status is different from "taking mediaType"
       photoStore.flowable()
-            .subscribe(state -> {
-               if (this.shutterButton != null) {
-                  this.shutterButton.setEnabled(state.status != PhotoState.Status.TAKING);
+            .subscribe(s -> {
+               if (s.status == PhotoState.Status.IDLE && isBursting) {
+                  long now = System.currentTimeMillis();
+                  long diff = now - timestamp;
+                  timestamp = now;
+                  Timber.d("Photo time: %d", diff);
+                  takePhoto();
                }
             });
    }
 
    @Override public void onClick(View v) {
-      switch (sessionStore.state().outputMode) {
-         case PHOTO:
-            Dispatcher.dispatch(new TakePhotoAction());
-            break;
-         default:
-            break;
+      isBursting = !isBursting;
+      takePhoto();
+   }
+
+   private void takePhoto() {
+      if (SessionState.OutputMode.PHOTO == sessionStore.state().outputMode) {
+         Dispatcher.dispatch(new TakePhotoAction());
       }
    }
 
    @Module
    @SuppressWarnings("javadoctype")
    public abstract static class TakePhotoModule {
-      @Provides @PluginScope @IntoMap @ClassKey(TakePhotoPlugin.class)
-      static Plugin provideTakePhotoPlugin(TakePhotoPlugin plugin) {
+      @Provides @PluginScope @IntoMap @ClassKey(TakeBurstPlugin.class)
+      static Plugin providePhotoPlugin(TakeBurstPlugin plugin) {
          return plugin;
       }
    }

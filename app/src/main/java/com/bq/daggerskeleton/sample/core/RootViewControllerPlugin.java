@@ -31,11 +31,11 @@ import dagger.multibindings.IntoMap;
 public class RootViewControllerPlugin extends SimplePlugin {
 
    private static final Interpolator ROTATION_INTERPOLATOR = new BounceInterpolator();
-   private final Activity activity;
-   private final RotationStore rotationStore;
    @BindView(R.id.side_controls_container) ViewGroup sideControlsContainer;
    @BindView(R.id.shutter_container) ViewGroup shutterContainer;
    @BindView(R.id.preview_container) ViewGroup previewContainer;
+   private final Activity activity;
+   private final RotationStore rotationStore;
 
    @Inject RootViewControllerPlugin(Activity activity, RotationStore rotationStore) {
       this.activity = activity;

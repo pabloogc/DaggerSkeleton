@@ -10,7 +10,6 @@ import com.bq.daggerskeleton.common.Plugin;
 import com.bq.daggerskeleton.common.PluginScope;
 import com.bq.daggerskeleton.common.SimplePlugin;
 import com.bq.daggerskeleton.flux.Dispatcher;
-import com.bq.daggerskeleton.sample.hardware.CameraPermissionChangedAction;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import javax.inject.Inject;
@@ -26,26 +25,43 @@ import dagger.multibindings.IntoMap;
  */
 public class RequestPermissionPlugin extends SimplePlugin {
 
+   private static final String[] NEEDED_PERMISSIONS =
+         new String[]{
+               Manifest.permission.CAMERA,
+               Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
    private final Activity activity;
+   private final RxPermissions rxPermissionsInstance;
 
    @Inject RequestPermissionPlugin(Activity activity) {
       this.activity = activity;
+      this.rxPermissionsInstance = RxPermissions.getInstance(activity);
    }
 
    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
-      boolean cameraGranted = RxPermissions.getInstance(activity).isGranted(Manifest.permission.CAMERA);
-      Dispatcher.dispatch(new CameraPermissionChangedAction(cameraGranted));
-      if (cameraGranted) return; //No need to ask
+      boolean permissionsGranted = arePermissionsGranted();
+      Dispatcher.dispatch(new PermissionsChangedAction(permissionsGranted));
 
-      track(RxPermissions.getInstance(activity)
-            .request(Manifest.permission.CAMERA)
+      if (permissionsGranted) return; //No need to ask
+
+      track(rxPermissionsInstance
+            .request(NEEDED_PERMISSIONS)
             .subscribe(granted -> {
                if (!granted) {
                   Toast.makeText(activity, "Missing Required Permission", Toast.LENGTH_SHORT).show();
                   activity.finish();
                }
-               Dispatcher.dispatch(new CameraPermissionChangedAction(granted));
+               Dispatcher.dispatch(new PermissionsChangedAction(granted));
             }));
+   }
+
+   private boolean arePermissionsGranted() {
+      for (String permission : NEEDED_PERMISSIONS) {
+         if (!rxPermissionsInstance.isGranted(permission)) {
+            return false;
+         }
+      }
+      return true;
    }
 
    @Module

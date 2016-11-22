@@ -70,19 +70,19 @@ public class CameraCharacteristicsUtil {
       StreamConfigurationMap streamConfigurationMap = cameraCharacteristics
             .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
       if (streamConfigurationMap != null) {
-         Size[] resolutionsArray;
-         //The parameter is either a integer (JPEG) or a class (MediaRecorder.class)
-         if (kind.getClass() == Integer.TYPE) {
-            resolutionsArray = streamConfigurationMap.getOutputSizes((Integer) kind);
+         Size[] availableResolutionsArray;
+         //The parameter is either an Integer (JPEG) or a class (MediaRecorder.class)
+         if (kind instanceof Integer) {
+            availableResolutionsArray = streamConfigurationMap.getOutputSizes((Integer) kind);
          } else {
-            resolutionsArray = streamConfigurationMap.getOutputSizes((Class) kind);
+            availableResolutionsArray = streamConfigurationMap.getOutputSizes((Class) kind);
          }
-         List<Size> jpegResolutions = Arrays.asList(resolutionsArray);
+         List<Size> availableResolutions = Arrays.asList(availableResolutionsArray);
 
          // Sort by descending area size
-         Collections.sort(jpegResolutions, new PreviewUtil.CompareSizesByArea());
-         Collections.reverse(jpegResolutions);
-         return jpegResolutions;
+         Collections.sort(availableResolutions, new PreviewUtil.CompareSizesByArea());
+         Collections.reverse(availableResolutions);
+         return availableResolutions;
       } else {
          return Collections.singletonList(new Size(640, 480));
       }

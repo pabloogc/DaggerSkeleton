@@ -47,11 +47,11 @@ import timber.log.Timber;
 @PluginScope
 public class PreviewPlugin extends SimplePlugin {
 
+   @BindView(R.id.preview_texture) AutoFitTextureView textureView;
    private final Activity activity;
    private final CameraStore cameraStore;
    private final SessionStore sessionStore;
    private final RootViewControllerPlugin rootViewControllerPlugin;
-   @BindView(R.id.preview_texture) AutoFitTextureView textureView;
    private ViewGroup container;
 
    @Inject PreviewPlugin(Activity activity,

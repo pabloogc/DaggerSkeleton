@@ -1,5 +1,6 @@
 package com.bq.daggerskeleton.sample.photo;
 
+import android.annotation.SuppressLint;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -14,6 +15,7 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Size;
+import android.view.Surface;
 
 import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.Store;
@@ -40,7 +42,7 @@ import dagger.multibindings.IntoMap;
 import timber.log.Timber;
 
 /**
- * Store that handles the resources associated with taking a photo (ImageReader).
+ * Store that handles the resources associated with taking a mediaType (ImageReader) and its lifecycle.
  */
 @AppScope
 public class PhotoStore extends Store<PhotoState> {
@@ -60,12 +62,23 @@ public class PhotoStore extends Store<PhotoState> {
       this.sessionStore = sessionStore;
       this.backgroundHandler = backgroundHandler;
 
-      // Subscribe to CameraOpened action to create an ImageReader
+      // Create an ImageReader when the camera device is opened
       Dispatcher.subscribe(CameraOpenedAction.class, action -> {
          if (isInPhotoMode()) {
-            setState(createImageReader());
+            setState(createImageReader(state()));
             Dispatcher.dispatch(new OutputSurfaceReadyAction(state().imageReader.getSurface()));
          }
+      });
+
+      Dispatcher.subscribe(TakePhotoAction.class, action -> {
+         takePicture();
+      });
+
+      Dispatcher.subscribe(PhotoStatusChangedAction.class, action -> {
+         PhotoState newState = new PhotoState(state());
+         newState.status = action.status;
+
+         setState(newState);
       });
 
       // Release the imageReader when closing the camera, as we'll nee to configure it again sometime
@@ -81,7 +94,9 @@ public class PhotoStore extends Store<PhotoState> {
    }
 
    @NonNull
-   private PhotoState createImageReader() {
+   private PhotoState createImageReader(PhotoState state) {
+      PhotoState newState = new PhotoState(state);
+
       String currentCameraId = cameraStore.state().selectedCamera;
       CameraCharacteristics cameraCharacteristics = cameraStore.state().availableCameras.get(currentCameraId);
       // TODO: 21/11/16 Configure resolution via Settings
@@ -98,55 +113,75 @@ public class PhotoStore extends Store<PhotoState> {
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
-            Dispatcher.dispatch(new PhotoBytesCapturedAction(bytes));
-         }
-      }, null);
 
-      PhotoState newState = new PhotoState(state());
+            Dispatcher.dispatchOnUi(new PhotoAvailableAction(bytes));
+         }
+      }, this.backgroundHandler);
+
+
       newState.imageReader = imageReader;
       return newState;
    }
 
+   @SuppressLint("DefaultLocale")
    private void takePicture() {
+      if (PhotoState.Status.TAKING == state().status) return;
+
       CameraCharacteristics cameraCharacteristics = cameraStore.state().availableCameras.get(
             cameraStore.state().selectedCamera);
 
       final CaptureRequest captureRequest = setupJpegRequest(
             cameraStore.state().cameraDevice,
             cameraCharacteristics,
+            state().imageReader.getSurface(),
             rotationStore.state());
 
       if (captureRequest != null) {
          try {
+            // Set status to: taking mediaType
+            Dispatcher.dispatch(new PhotoStatusChangedAction(PhotoState.Status.TAKING));
+
             sessionStore.state().session.capture(captureRequest, new CameraCaptureSession.CaptureCallback() {
                @Override
                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                   super.onCaptureCompleted(session, request, result);
-                  Dispatcher.dispatch(new PhotoCaptureCompletedAction(result));
+
+                  Dispatcher.dispatchOnUi(new PhotoStatusChangedAction(PhotoState.Status.SUCCESS));
+                  Dispatcher.dispatchOnUi(new PhotoStatusChangedAction(PhotoState.Status.IDLE));
                }
 
                @Override
                public void onCaptureFailed(CameraCaptureSession session, CaptureRequest request, CaptureFailure failure) {
                   super.onCaptureFailed(session, request, failure);
-                  Timber.e(
-                        "Error capturing photo!\nReason %s in frame %d, was image captured? -> %s",
-                        failure.getReason(),
-                        failure.getFrameNumber(),
-                        failure.wasImageCaptured());
+                  Exception captureFailedException = new RuntimeException(
+                        String.format("Capture failed: Reason %s in frame %d, was image captured? -> %s",
+                              failure.getReason(),
+                              failure.getFrameNumber(),
+                              failure.wasImageCaptured()));
+                  Timber.e(captureFailedException, "Cannot take mediaType, capture failed!");
+
+                  Dispatcher.dispatchOnUi(new PhotoStatusChangedAction(PhotoState.Status.ERROR, captureFailedException));
+                  Dispatcher.dispatchOnUi(new PhotoStatusChangedAction(PhotoState.Status.IDLE));
                }
             }, this.backgroundHandler);
-         } catch (CameraAccessException e) {
-            e.printStackTrace();
-            // TODO: 21/11/16 We should notify about an error while taking the picture
+         } catch (CameraAccessException | IllegalStateException | IllegalArgumentException | SecurityException e) {
+            Timber.e(e, "Cannot take mediaType, capture error!");
+
+            Dispatcher.dispatch(new PhotoStatusChangedAction(PhotoState.Status.ERROR, e));
+            Dispatcher.dispatch(new PhotoStatusChangedAction(PhotoState.Status.IDLE));
          }
 
       } else {
-         // TODO: 21/11/16 We should notify about an error while taking the picture
+         Timber.e("Cannot take mediaType, captureRequest is null!");
+
+         Dispatcher.dispatch(new PhotoStatusChangedAction(PhotoState.Status.ERROR));
+         Dispatcher.dispatch(new PhotoStatusChangedAction(PhotoState.Status.IDLE));
       }
    }
 
    private CaptureRequest setupJpegRequest(CameraDevice cameraDevice,
                                            CameraCharacteristics cameraCharacteristics,
+                                           Surface outputSurface,
                                            RotationState rotationState) {
       try {
          // Create capture request for taking photos
@@ -165,6 +200,9 @@ public class PhotoStore extends Store<PhotoState> {
                      CameraCharacteristicsUtil.getSensorOrientation(cameraCharacteristics)));
          // Full quality
          captureRequestBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 100);
+
+         // Add target surface
+         captureRequestBuilder.addTarget(outputSurface);
 
          return captureRequestBuilder.build();
       } catch (CameraAccessException e) {

@@ -6,6 +6,7 @@ import android.media.ImageReader;
 public class PhotoState {
    public ImageReader imageReader;
    public Status status = Status.IDLE;
+
    public PhotoState() {
 
    }
