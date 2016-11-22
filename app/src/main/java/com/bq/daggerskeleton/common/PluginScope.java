@@ -8,5 +8,6 @@ import javax.inject.Scope;
 
 @Scope
 @Retention(RetentionPolicy.SOURCE)
+@SuppressWarnings("javadoctype")
 public @interface PluginScope {
 }

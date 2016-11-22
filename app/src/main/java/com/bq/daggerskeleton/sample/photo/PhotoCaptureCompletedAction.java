@@ -4,6 +4,7 @@ import android.hardware.camera2.TotalCaptureResult;
 
 import com.bq.daggerskeleton.flux.Action;
 
+@SuppressWarnings("javadoctype")
 public class PhotoCaptureCompletedAction implements Action {
     public final TotalCaptureResult result;
 

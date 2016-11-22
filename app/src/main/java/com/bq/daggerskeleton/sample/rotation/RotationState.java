@@ -1,6 +1,6 @@
 package com.bq.daggerskeleton.sample.rotation;
 
-
+@SuppressWarnings("javadoctype")
 public final class RotationState {
 
    public int deviceAccumulatedRotation = 0;

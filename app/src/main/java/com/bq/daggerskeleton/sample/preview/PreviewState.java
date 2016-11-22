@@ -4,6 +4,8 @@ import android.graphics.SurfaceTexture;
 import android.util.Size;
 import android.view.Surface;
 
+
+@SuppressWarnings("javadoctype")
 public class PreviewState {
 
    public SurfaceTexture previewTexture;

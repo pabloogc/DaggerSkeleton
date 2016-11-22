@@ -41,7 +41,9 @@ import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
 import timber.log.Timber;
 
-
+/**
+ * Plugin that controls the preview surface.
+ */
 @PluginScope
 public class PreviewPlugin extends SimplePlugin {
 
@@ -152,6 +154,7 @@ public class PreviewPlugin extends SimplePlugin {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public abstract static class PreviewModule {
       @Provides @PluginScope @IntoMap @ClassKey(PreviewPlugin.class)
       static Plugin providePreviewPlugin(PreviewPlugin plugin) {

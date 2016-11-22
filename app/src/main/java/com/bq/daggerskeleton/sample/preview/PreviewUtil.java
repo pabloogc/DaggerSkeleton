@@ -10,6 +10,7 @@ import java.util.List;
 
 import timber.log.Timber;
 
+@SuppressWarnings("javadoctype")
 public class PreviewUtil {
 
    private PreviewUtil() {

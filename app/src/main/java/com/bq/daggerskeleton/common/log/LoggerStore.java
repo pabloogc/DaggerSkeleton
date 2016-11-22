@@ -39,6 +39,10 @@ import static android.content.ContentValues.TAG;
 import static android.util.Log.d;
 import static android.util.Log.e;
 
+/**
+ * Store that subscribes to every other store state change and logs it to
+ * the {@link FileLogger} instance.
+ */
 public class LoggerStore extends Store<LoggerState> {
 
    private static final String LOG_FOLDER = "__camera_log";
@@ -67,7 +71,6 @@ public class LoggerStore extends Store<LoggerState> {
 
    @SuppressWarnings("unchecked")
    static Disposable subscribeToObservableUnsafe(Object observable, String tag, String linePrefix) {
-
       Consumer consumer = value -> Timber.tag(tag).i("%s <- %s", linePrefix, value);
       Consumer errorConsumer = value -> Timber.tag(tag).e("%s <- %s", linePrefix, value);
 
@@ -81,10 +84,12 @@ public class LoggerStore extends Store<LoggerState> {
       } else if (observable instanceof Maybe) {
          disposable = ((Maybe) observable).observeOn(Schedulers.io()).subscribe(consumer, errorConsumer);
       }
-
       return disposable;
    }
 
+   /**
+    * Debug utility to dump a file as a string.
+    */
    public static String fileToString(File file) {
       BufferedReader reader;
       try {
@@ -163,6 +168,7 @@ public class LoggerStore extends Store<LoggerState> {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public abstract static class LoggerModule {
       @Provides @AppScope @IntoMap @ClassKey(LoggerStore.class)
       static Store<?> provideLoggerPlugin(LoggerStore store) {

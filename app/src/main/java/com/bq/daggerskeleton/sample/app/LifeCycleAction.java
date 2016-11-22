@@ -2,6 +2,7 @@ package com.bq.daggerskeleton.sample.app;
 
 import com.bq.daggerskeleton.flux.Action;
 
+@SuppressWarnings("javadoctype")
 public class LifeCycleAction implements Action {
 
    public final Event event;
@@ -16,6 +17,7 @@ public class LifeCycleAction implements Action {
             '}';
    }
 
+   @SuppressWarnings("javadoctype")
    public enum Event {
       ON_CREATE,
       ON_POST_CREATE,

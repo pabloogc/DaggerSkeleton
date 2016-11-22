@@ -32,7 +32,6 @@ public class AutoFitTextureView extends TextureView {
    public static final float RATIO_STANDARD = 4f / 3f;
    public static final float RATIO_FULL_SCREEN = 16f / 9f;
    public static final float RATIO_ONE_ONE = 1f;
-   private Matrix matrix = null;
    private float aspectRatio = RATIO_FULL_SCREEN;
    private float aspectRatioScale = 1f;
    private boolean aspectRatioResize;
@@ -45,7 +44,7 @@ public class AutoFitTextureView extends TextureView {
     */
    private OnLayoutChangeListener onLayoutChangeListener = new OnLayoutChangeListener() {
       @Override
-      @SuppressWarnings("CheckStyle")
+      @SuppressWarnings("checkstyle:parameternumber")
       public void onLayoutChange(View v, int left, int top, int right,
                                  int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
 
@@ -117,7 +116,7 @@ public class AutoFitTextureView extends TextureView {
    }
 
    private void setTransformMatrix(int width, int height) {
-      matrix = new Matrix();
+      Matrix matrix = new Matrix();
       float scaleX, scaleY;
       float scaledTextureWidth, scaledTextureHeight;
 

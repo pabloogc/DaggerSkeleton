@@ -1,5 +1,8 @@
 package com.bq.daggerskeleton.common;
 
+/**
+ * Runtime properties of a plugin.
+ */
 public final class PluginProperties {
 
    public static final int DEFAULT_PRIORITY = 50;
@@ -22,6 +25,8 @@ public final class PluginProperties {
       this.touchPriority = touchPriority;
    }
 
+
+   @SuppressWarnings({"javadoctype", "javadocmethod"})
    public static final class Builder {
 
       private boolean willHandleTouch;

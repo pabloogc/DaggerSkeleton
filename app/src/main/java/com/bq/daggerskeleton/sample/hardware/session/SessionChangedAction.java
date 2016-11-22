@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 
 import com.bq.daggerskeleton.flux.Action;
 
+@SuppressWarnings("javadoctype")
 public class SessionChangedAction implements Action {
 
    @NonNull public final SessionState.Status status;

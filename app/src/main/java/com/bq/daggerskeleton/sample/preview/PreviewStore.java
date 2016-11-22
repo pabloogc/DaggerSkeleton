@@ -13,6 +13,9 @@ import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
 
+/**
+ * Store that handles the preview state and resources (Texture).
+ */
 @AppScope
 public class PreviewStore extends Store<PreviewState> {
 
@@ -42,6 +45,7 @@ public class PreviewStore extends Store<PreviewState> {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public static class PreviewModule {
       @Provides @AppScope @IntoMap @ClassKey(PreviewStore.class)
       static Store<?> providePreviewStoreToMap(PreviewStore store) {

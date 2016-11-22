@@ -22,6 +22,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 
+/**
+ * Store that listen for device rotations and updates its state so views can animate rotation.
+ */
 @AppScope
 public class RotationStore extends Store<RotationState> {
 
@@ -47,6 +50,8 @@ public class RotationStore extends Store<RotationState> {
                setState(initialState()); //Reset
                orientationEventListener.disable();
                break;
+            default:
+               break; //No-op
          }
       });
 
@@ -75,10 +80,9 @@ public class RotationStore extends Store<RotationState> {
       private int lastOrientation = -1;
       private int lastBucket = 0;
       private int accumulatedRotation = 0;
-      private boolean skipNext;
       private int toSkip = 0;
 
-      public OrientationHandler(Context context) {
+      OrientationHandler(Context context) {
          super(context);
       }
 
@@ -86,7 +90,6 @@ public class RotationStore extends Store<RotationState> {
          lastOrientation = -1;
          lastBucket = 0;
          accumulatedRotation = 0;
-         skipNext = true;
       }
 
       @Override public void onOrientationChanged(int orientation) {
@@ -147,8 +150,8 @@ public class RotationStore extends Store<RotationState> {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public static class RotationModule {
-
       @Provides @AppScope @IntoMap @ClassKey(RotationStore.class)
       static Store<?> provideRotationStoreToSet(RotationStore store) {
          return store;

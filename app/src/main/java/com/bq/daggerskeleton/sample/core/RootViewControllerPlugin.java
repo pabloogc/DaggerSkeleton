@@ -24,14 +24,15 @@ import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
 
+/**
+ * Plugin that handles the root frames of the camera so other plugins can add its own views.
+ */
 @PluginScope
 public class RootViewControllerPlugin extends SimplePlugin {
 
    private static final Interpolator ROTATION_INTERPOLATOR = new BounceInterpolator();
-
    private final Activity activity;
    private final RotationStore rotationStore;
-
    @BindView(R.id.side_controls_container) ViewGroup sideControlsContainer;
    @BindView(R.id.shutter_container) ViewGroup shutterContainer;
    @BindView(R.id.preview_container) ViewGroup previewContainer;
@@ -79,7 +80,8 @@ public class RootViewControllerPlugin extends SimplePlugin {
    }
 
    @Module
-   public static abstract class RootViewControllerModule {
+   @SuppressWarnings("javadoctype")
+   public abstract static class RootViewControllerModule {
       @PluginScope @Provides @IntoMap @ClassKey(RootViewControllerPlugin.class)
       static Plugin provideRootViewControllerPlugin(RootViewControllerPlugin plugin) {
          return plugin;

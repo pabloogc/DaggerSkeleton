@@ -4,6 +4,7 @@ import android.graphics.SurfaceTexture;
 
 import com.bq.daggerskeleton.flux.Action;
 
+@SuppressWarnings("javadoctype")
 public final class PreviewSurfaceReadyAction implements Action {
    public final SurfaceTexture surfaceTexture;
 

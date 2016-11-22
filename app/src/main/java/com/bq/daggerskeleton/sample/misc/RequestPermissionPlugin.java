@@ -10,7 +10,7 @@ import com.bq.daggerskeleton.common.Plugin;
 import com.bq.daggerskeleton.common.PluginScope;
 import com.bq.daggerskeleton.common.SimplePlugin;
 import com.bq.daggerskeleton.flux.Dispatcher;
-import com.bq.daggerskeleton.sample.hardware.CameraPermissionChanged;
+import com.bq.daggerskeleton.sample.hardware.CameraPermissionChangedAction;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import javax.inject.Inject;
@@ -20,6 +20,10 @@ import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
 
+/**
+ * Plugin that checks if the camera has permissions, shows the dialog and closes
+ * the camera if it fails.
+ */
 public class RequestPermissionPlugin extends SimplePlugin {
 
    private final Activity activity;
@@ -30,7 +34,7 @@ public class RequestPermissionPlugin extends SimplePlugin {
 
    @Override public void onCreate(@Nullable Bundle savedInstanceState) {
       boolean cameraGranted = RxPermissions.getInstance(activity).isGranted(Manifest.permission.CAMERA);
-      Dispatcher.dispatch(new CameraPermissionChanged(cameraGranted));
+      Dispatcher.dispatch(new CameraPermissionChangedAction(cameraGranted));
       if (cameraGranted) return; //No need to ask
 
       track(RxPermissions.getInstance(activity)
@@ -40,12 +44,13 @@ public class RequestPermissionPlugin extends SimplePlugin {
                   Toast.makeText(activity, "Missing Required Permission", Toast.LENGTH_SHORT).show();
                   activity.finish();
                }
-               Dispatcher.dispatch(new CameraPermissionChanged(granted));
+               Dispatcher.dispatch(new CameraPermissionChangedAction(granted));
             }));
    }
 
    @Module
-   public static abstract class RequestPermissionModule {
+   @SuppressWarnings("javadoctype")
+   public abstract static class RequestPermissionModule {
       @PluginScope @Provides @IntoMap @ClassKey(RequestPermissionPlugin.class)
       static Plugin provideRequestPermissionModule(RequestPermissionPlugin plugin) {
          return plugin;

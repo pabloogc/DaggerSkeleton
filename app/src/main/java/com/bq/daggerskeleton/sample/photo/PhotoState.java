@@ -2,17 +2,10 @@ package com.bq.daggerskeleton.sample.photo;
 
 import android.media.ImageReader;
 
+@SuppressWarnings("javadoctype")
 public class PhotoState {
-   public enum Status {
-      IDLE,
-      TAKING,
-      SUCCESS,
-      ERROR
-   }
-
    public ImageReader imageReader;
    public Status status = Status.IDLE;
-
    public PhotoState() {
 
    }
@@ -48,5 +41,12 @@ public class PhotoState {
       int result = imageReader != null ? imageReader.hashCode() : 0;
       result = 31 * result + (status != null ? status.hashCode() : 0);
       return result;
+   }
+
+   public enum Status {
+      IDLE,
+      TAKING,
+      SUCCESS,
+      ERROR
    }
 }

@@ -2,6 +2,7 @@ package com.bq.daggerskeleton.common;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.KeyEvent;
@@ -17,6 +18,9 @@ public abstract class SimplePlugin implements Plugin {
 
    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
+   /**
+    * Automatically cancel the subscription when the view is destroyed.
+    */
    public void track(Disposable disposable) {
       compositeDisposable.add(disposable);
    }
@@ -59,6 +63,7 @@ public abstract class SimplePlugin implements Plugin {
    }
 
    @Override
+   @CallSuper
    public void onDestroy() {
       compositeDisposable.clear();
    }

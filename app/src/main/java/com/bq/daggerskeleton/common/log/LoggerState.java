@@ -2,6 +2,8 @@ package com.bq.daggerskeleton.common.log;
 
 import android.support.annotation.Nullable;
 
+
+@SuppressWarnings("javadoctype")
 public class LoggerState {
    @Nullable public final FileLogger fileLogger;
 

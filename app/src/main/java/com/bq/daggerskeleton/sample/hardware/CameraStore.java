@@ -45,7 +45,7 @@ public class CameraStore extends Store<CameraState> {
       this.cameraManager = ((CameraManager) app.getSystemService(Context.CAMERA_SERVICE));
       this.backgroundHandler = backgroundHandler;
 
-      Dispatcher.subscribe(CameraPermissionChanged.class, permissionChanged -> {
+      Dispatcher.subscribe(CameraPermissionChangedAction.class, permissionChanged -> {
          CameraState newState = new CameraState(state());
          newState.canOpenCamera = permissionChanged.granted;
          setState(newState);
@@ -155,6 +155,7 @@ public class CameraStore extends Store<CameraState> {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public static class CameraModule {
       @Provides @AppScope @IntoMap @ClassKey(CameraStore.class)
       static Store<?> provideCameraStoreToMap(CameraStore store) {

@@ -104,6 +104,7 @@ public final class LoggerPlugin extends SimplePlugin {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public abstract static class LoggerPluginModule {
       @Provides @PluginScope @IntoMap @ClassKey(LoggerPlugin.class)
       static Plugin provideLoggerPlugin(LoggerPlugin plugin) {

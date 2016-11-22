@@ -15,6 +15,12 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import timber.log.Timber;
 
+
+/**
+ * Hub for sending actions (Stores, and Plugins) and subscribing.
+ * Only stores should subscribe to the dispatcher. Note that this class is not thread safe,
+ * calling it from a background thread will throw an exception.
+ */
 public class Dispatcher {
 
    public static final int VERY_HIGH_PRIORITY = 5;

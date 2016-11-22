@@ -2,16 +2,19 @@ package com.bq.daggerskeleton.sample.hardware;
 
 import com.bq.daggerskeleton.flux.Action;
 
-public class CameraPermissionChanged implements Action {
+/**
+ * Dispatched when the Android M permissions change.
+ */
+public class CameraPermissionChangedAction implements Action {
 
    public final boolean granted;
 
-   public CameraPermissionChanged(boolean granted) {
+   public CameraPermissionChangedAction(boolean granted) {
       this.granted = granted;
    }
 
    @Override public String toString() {
-      return "CameraPermissionChanged{" +
+      return "CameraPermissionChangedAction{" +
             "granted=" + granted +
             '}';
    }

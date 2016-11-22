@@ -45,11 +45,15 @@ public class SessionState {
             '}';
    }
 
+
+   @SuppressWarnings("javadoctype")
    public enum OutputMode {
       PHOTO,
       VIDEO
    }
 
+
+   @SuppressWarnings("javadoctype")
    public enum Status {
       NO_SESSION, READY, OPENING, ERROR;
 

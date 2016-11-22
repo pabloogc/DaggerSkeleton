@@ -4,6 +4,8 @@ import android.util.Size;
 
 import com.bq.daggerskeleton.flux.Action;
 
+
+@SuppressWarnings("javadoctype")
 public final class PreviewSurfaceBufferCalculatedAction implements Action {
    public final Size size;
 

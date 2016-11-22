@@ -22,6 +22,7 @@ import dagger.multibindings.IntoMap;
 
 
 @PluginScope
+@SuppressWarnings("javadoctype")
 public class TakePhotoPlugin extends SimplePlugin {
 
    private final Activity activity;
@@ -47,6 +48,7 @@ public class TakePhotoPlugin extends SimplePlugin {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public abstract static class TakePhotoModule {
       @Provides @PluginScope @IntoMap @ClassKey(TakePhotoPlugin.class)
       static Plugin providePhotoPlugin(TakePhotoPlugin plugin) {

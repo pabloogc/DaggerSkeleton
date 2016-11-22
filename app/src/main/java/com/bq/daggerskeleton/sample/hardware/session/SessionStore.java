@@ -167,6 +167,7 @@ public class SessionStore extends Store<SessionState> {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public static class SessionModule {
       @Provides @AppScope @IntoMap @ClassKey(SessionStore.class)
       static Store<?> provideSessionStoreToSet(SessionStore store) {

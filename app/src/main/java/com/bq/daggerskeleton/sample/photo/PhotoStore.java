@@ -39,6 +39,9 @@ import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
 import timber.log.Timber;
 
+/**
+ * Store that handles the resources associated with taking a photo (ImageReader).
+ */
 @AppScope
 public class PhotoStore extends Store<PhotoState> {
 
@@ -71,11 +74,6 @@ public class PhotoStore extends Store<PhotoState> {
             setState(releaseImageReader());
          }
       });
-   }
-
-   @Override
-   protected PhotoState initialState() {
-      return new PhotoState();
    }
 
    private boolean isInPhotoMode() {
@@ -184,6 +182,7 @@ public class PhotoStore extends Store<PhotoState> {
    }
 
    @Module
+   @SuppressWarnings("javadoctype")
    public static class PhotoModule {
       @Provides @AppScope @IntoMap @ClassKey(PhotoStore.class)
       static Store<?> providePhotoStoreToMap(PhotoStore store) {
