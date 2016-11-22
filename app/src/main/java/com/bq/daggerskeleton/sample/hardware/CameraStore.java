@@ -52,7 +52,7 @@ public class CameraStore extends Store<CameraState> {
       });
 
       Dispatcher.subscribe(OpenCameraAction.class, a -> {
-         if (state().cameraDevice == null) setState(openCamera(state()));
+         setState(tryToOpenCamera(state()));
       });
 
       Dispatcher.subscribe(CloseCameraAction.class, a -> setState(closeCamera(state())));
@@ -64,8 +64,10 @@ public class CameraStore extends Store<CameraState> {
       });
    }
 
-   private CameraState openCamera(CameraState state) {
+   private CameraState tryToOpenCamera(CameraState state) {
+      if (state().cameraDevice != null) return state;
       if (!state().canOpenCamera) return state;
+
       CameraState newState = new CameraState(state);
 
       try {
