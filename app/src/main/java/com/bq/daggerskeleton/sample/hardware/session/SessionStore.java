@@ -39,8 +39,7 @@ public class SessionStore extends Store<SessionState> {
    private final PreviewStore previewStore;
    private final Handler backgroundHandler;
 
-   @Inject
-   SessionStore(CameraStore cameraStore, PreviewStore previewStore, Handler backgroundHandler) {
+   @Inject SessionStore(CameraStore cameraStore, PreviewStore previewStore, Handler backgroundHandler) {
       this.cameraStore = cameraStore;
       this.previewStore = previewStore;
       this.backgroundHandler = backgroundHandler;
@@ -60,6 +59,8 @@ public class SessionStore extends Store<SessionState> {
          SessionState newState = new SessionState(state());
          newState.outputSurface = new WeakReference<>(a.outputSurface);
          setState(newState);
+
+         tryToStartSession();
       });
 
       this.cameraStore.flowable().subscribe(a -> {
@@ -85,6 +86,7 @@ public class SessionStore extends Store<SessionState> {
       if (cameraState.cameraDevice == null) return;
       if (previewState.previewTexture == null) return;
       if (previewState.previewSize == null) return;
+      if (outputSurface == null) return;
 
       try {
          CaptureRequest.Builder request;

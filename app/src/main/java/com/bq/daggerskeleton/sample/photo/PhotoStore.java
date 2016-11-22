@@ -19,9 +19,9 @@ import com.bq.daggerskeleton.flux.Dispatcher;
 import com.bq.daggerskeleton.flux.Store;
 import com.bq.daggerskeleton.sample.app.AppScope;
 import com.bq.daggerskeleton.sample.hardware.CameraCharacteristicsUtil;
+import com.bq.daggerskeleton.sample.hardware.CameraOpenedAction;
 import com.bq.daggerskeleton.sample.hardware.CameraStore;
 import com.bq.daggerskeleton.sample.hardware.CloseCameraAction;
-import com.bq.daggerskeleton.sample.hardware.OpenCameraAction;
 import com.bq.daggerskeleton.sample.hardware.session.OutputSurfaceReadyAction;
 import com.bq.daggerskeleton.sample.hardware.session.SessionState;
 import com.bq.daggerskeleton.sample.hardware.session.SessionStore;
@@ -57,8 +57,8 @@ public class PhotoStore extends Store<PhotoState> {
       this.sessionStore = sessionStore;
       this.backgroundHandler = backgroundHandler;
 
-      // Subscribe to OpenCamera action to create an ImageReader
-      Dispatcher.subscribe(OpenCameraAction.class, action -> {
+      // Subscribe to CameraOpened action to create an ImageReader
+      Dispatcher.subscribe(CameraOpenedAction.class, action -> {
          if (isInPhotoMode()) {
             setState(createImageReader());
             Dispatcher.dispatch(new OutputSurfaceReadyAction(state().imageReader.getSurface()));
